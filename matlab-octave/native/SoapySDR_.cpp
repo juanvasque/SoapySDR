@@ -18,9 +18,9 @@
 
 using namespace mexplus;
 
-//
+//////////////////////////////////////////////////////
 // Utility
-//
+//////////////////////////////////////////////////////
 
 #define ARRAY_SIZE(x) (sizeof(x) / sizeof(x[0]))
 
@@ -118,13 +118,13 @@ struct GlobalVarInit
 
 static const GlobalVarInit globalVarInit;
 
-//
+//////////////////////////////////////////////////////
 // <SoapySDR/Logger.hpp>
-//
+//////////////////////////////////////////////////////
 
-//
+//////////////////////////////////////////////////////
 // <SoapySDR/Time.hpp>
-//
+//////////////////////////////////////////////////////
 
 MEX_DEFINE(Time_ticksToTimeNs) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
@@ -150,9 +150,9 @@ MEX_DEFINE(Time_timeNsToTicks) (int nlhs, mxArray *plhs[], int nrhs, const mxArr
             input.get<double>(1)));
 }
 
-//
+//////////////////////////////////////////////////////
 // <SoapySDR/Types.hpp>
-//
+//////////////////////////////////////////////////////
 
 template <>
 mxArray *MxArray::from(const SoapySDR::Range &range)
@@ -208,9 +208,9 @@ mxArray *MxArray::from(const SoapySDR::ArgInfo &argInfo)
     return struct_array.release();
 }
 
-//
+//////////////////////////////////////////////////////
 // <SoapySDR/Device.hpp>
-//
+//////////////////////////////////////////////////////
 
 template <>
 void MxArray::to(const mxArray *array, SoapySDR::Device **device)
@@ -232,6 +232,10 @@ MEX_DEFINE(Device_enumerate) (int nlhs, mxArray *plhs[], int nrhs, const mxArray
     output.set(0, SoapySDR::Device::enumerate(input.get<std::string>(0)));
 }
 
+//
+// Construction/destruction API
+//
+
 MEX_DEFINE(Device_make) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
     InputArguments input(nrhs, prhs, 1);
@@ -248,6 +252,10 @@ MEX_DEFINE(Device_unmake) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *p
 
     SoapySDR::Device::unmake(input.get<SoapySDR::Device *>(0));
 }
+
+//
+// Identification API
+//
 
 MEX_DEFINE(Device_getDriverKey) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
@@ -272,6 +280,10 @@ MEX_DEFINE(Device_getHardwareInfo) (int nlhs, mxArray *plhs[], int nrhs, const m
 
     output.set(0, input.get<SoapySDR::Device *>(0)->getHardwareInfo());
 }
+
+//
+// Channels API
+//
 
 MEX_DEFINE(Device_setFrontendMapping) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
@@ -304,8 +316,79 @@ MEX_DEFINE(Device_getNumChannels) (int nlhs, mxArray *plhs[], int nrhs, const mx
             input.get<int>(1)));
 }
 
+MEX_DEFINE(Device_getChannelInfo) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    InputArguments input(nrhs, prhs, 3);
+    OutputArguments output(nlhs, plhs, 1);
+
+    output.set(
+        0,
+        input.get<SoapySDR::Device *>(0)->getChannelInfo(
+            input.get<int>(1),
+            input.get<size_t>(2)));
+}
+
+MEX_DEFINE(Device_getFullDuplex) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    InputArguments input(nrhs, prhs, 3);
+    OutputArguments output(nlhs, plhs, 1);
+
+    output.set(
+        0,
+        input.get<SoapySDR::Device *>(0)->getFullDuplex(
+            input.get<int>(1),
+            input.get<size_t>(2)));
+}
+
 //
+// Stream API
+//
+
+MEX_DEFINE(Device_getStreamFormats) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    InputArguments input(nrhs, prhs, 3);
+    OutputArguments output(nlhs, plhs, 1);
+
+    output.set(
+        0,
+        input.get<SoapySDR::Device *>(0)->getStreamFormats(
+            input.get<int>(1),
+            input.get<size_t>(2)));
+}
+
+MEX_DEFINE(Device_getNativeStreamFormat) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    InputArguments input(nrhs, prhs, 3);
+    OutputArguments output(nlhs, plhs, 2);
+
+    double fullScale;
+    output.set(
+        0,
+        input.get<SoapySDR::Device *>(0)->getNativeStreamFormat(
+            input.get<int>(1),
+            input.get<size_t>(2),
+            fullScale));
+    output.set(1, fullScale);
+}
+
+MEX_DEFINE(Device_getStreamArgsInfo) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    InputArguments input(nrhs, prhs, 3);
+    OutputArguments output(nlhs, plhs, 1);
+
+    output.set(
+        0,
+        input.get<SoapySDR::Device *>(0)->getStreamArgsInfo(
+            input.get<int>(1),
+            input.get<size_t>(2)));
+}
+
+//
+// Antenna API
+//
+
+//////////////////////////////////////////////////////
 // mexplus
-//
+//////////////////////////////////////////////////////
 
 MEX_DISPATCH
