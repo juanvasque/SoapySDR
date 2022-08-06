@@ -62,13 +62,13 @@ if(ENABLE_OCTAVE)
 
     # TODO: not portable
     add_custom_command(
-        OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/SoapySDR_.oct
+        OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/SoapySDR_MEX.oct
         COMMENT "Building Octave bindings"
-        COMMAND ${OCTAVE_MKOCTFILE_EXECUTABLE} ${include_flags} ${libdir_flags} ${library_flags} ${CMAKE_CURRENT_SOURCE_DIR}/native/SoapySDR_.cpp
+        COMMAND ${OCTAVE_MKOCTFILE_EXECUTABLE} ${include_flags} ${libdir_flags} ${library_flags} ${CMAKE_CURRENT_SOURCE_DIR}/native/SoapySDR_MEX.cpp
         DEPENDS SoapySDR
-        DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/native/SoapySDR_.cpp)
+        DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/native/SoapySDR_MEX.cpp)
 
-    add_custom_target(SoapySDR_ ALL
-        DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/SoapySDR_.oct
-        SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/native/SoapySDR_.cpp)
+    add_custom_target(Octave_SoapySDR ALL
+        DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/SoapySDR_MEX.oct
+        SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/native/SoapySDR_MEX.cpp)
 endif()
