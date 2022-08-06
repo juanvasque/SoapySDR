@@ -1,7 +1,7 @@
 ########################################################################
 # Project setup
 ########################################################################
-cmake_minimum_required(VERSION 3.3.0)
+cmake_minimum_required(VERSION 3.7.0)
 project(SoapySDR)
 enable_language(CXX)
 enable_testing()
@@ -152,6 +152,11 @@ message(STATUS "## Begin configuration for LuaJIT support...")
 message(STATUS "#############################################")
 message(STATUS "Enabling optional LuaJIT bindings if possible...")
 add_subdirectory(luajit)
+
+########################################################################
+# Matlab/Octave (optional)
+########################################################################
+add_subdirectory(matlab-octave)
 
 ########################################################################
 # uninstall target
