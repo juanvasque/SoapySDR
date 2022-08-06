@@ -118,6 +118,20 @@ struct GlobalVarInit
 
 static const GlobalVarInit globalVarInit;
 
+template <typename Fcn>
+static void safeCall(const Fcn &fcn, const std::string &context)
+{
+    try { fcn(); }
+    catch(const std::exception &ex)
+    {
+        mexErrMsgIdAndTxt(context.c_str(), ex.what());
+    }
+    catch(...)
+    {
+        mexErrMsgIdAndTxt(context.c_str(), "Unknown error");
+    }
+}
+
 //////////////////////////////////////////////////////
 // <SoapySDR/Logger.hpp>
 //////////////////////////////////////////////////////
@@ -128,26 +142,36 @@ static const GlobalVarInit globalVarInit;
 
 MEX_DEFINE(Time_ticksToTimeNs) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
-    InputArguments input(nrhs, prhs, 2);
-    OutputArguments output(nlhs, plhs, 1);
+    safeCall(
+        [&]()
+        {
+            InputArguments input(nrhs, prhs, 2);
+            OutputArguments output(nlhs, plhs, 1);
 
-    output.set(
-        0,
-        SoapySDR::ticksToTimeNs(
-            input.get<long long>(0),
-            input.get<double>(1)));
+            output.set(
+                0,
+                SoapySDR::ticksToTimeNs(
+                    input.get<long long>(0),
+                    input.get<double>(1)));
+        },
+        "ticksToTimeNs");
 }
 
 MEX_DEFINE(Time_timeNsToTicks) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
-    InputArguments input(nrhs, prhs, 2);
-    OutputArguments output(nlhs, plhs, 1);
+    safeCall(
+        [&]()
+        {
+            InputArguments input(nrhs, prhs, 2);
+            OutputArguments output(nlhs, plhs, 1);
 
-    output.set(
-        0,
-        SoapySDR::timeNsToTicks(
-            input.get<long long>(0),
-            input.get<double>(1)));
+            output.set(
+                0,
+                SoapySDR::timeNsToTicks(
+                    input.get<long long>(0),
+                    input.get<double>(1)));
+        },
+        "timeNsToTicks");
 }
 
 //////////////////////////////////////////////////////
@@ -226,10 +250,15 @@ void MxArray::to(const mxArray *array, SoapySDR::Device **device)
 
 MEX_DEFINE(Device_enumerate) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
-    InputArguments input(nrhs, prhs, 1);
-    OutputArguments output(nlhs, plhs, 1);
+    safeCall(
+        [&]()
+        {
+            InputArguments input(nrhs, prhs, 1);
+            OutputArguments output(nlhs, plhs, 1);
 
-    output.set(0, SoapySDR::Device::enumerate(input.get<std::string>(0)));
+            output.set(0, SoapySDR::Device::enumerate(input.get<std::string>(0)));
+        },
+        "Device_enumerate");
 }
 
 //
@@ -238,48 +267,34 @@ MEX_DEFINE(Device_enumerate) (int nlhs, mxArray *plhs[], int nrhs, const mxArray
 
 MEX_DEFINE(Device_make) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
-    InputArguments input(nrhs, prhs, 1);
-    OutputArguments output(nlhs, plhs, 1);
+    safeCall(
+        [&]()
+        {
+            InputArguments input(nrhs, prhs, 1);
+            OutputArguments output(nlhs, plhs, 1);
 
-    // For some reason, we can't specialize MxArray::from<> for pointers, so
-    // we need this extra shim.
-    output.set(0, fromPointer(SoapySDR::Device::make(input.get<std::string>(0))));
+            // For some reason, we can't specialize MxArray::from<> for pointers, so
+            // we need this extra shim.
+            output.set(0, fromPointer(SoapySDR::Device::make(input.get<std::string>(0))));
+        },
+        "Device_make");
 }
 
 MEX_DEFINE(Device_unmake) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
-    InputArguments input(nrhs, prhs, 1);
+    safeCall(
+        [&]()
+        {
+            InputArguments input(nrhs, prhs, 1);
 
-    SoapySDR::Device::unmake(input.get<SoapySDR::Device *>(0));
+            SoapySDR::Device::unmake(input.get<SoapySDR::Device *>(0));
+        },
+        "Device_unmake");
 }
 
 //
-// Identification API
+// Identification API (TODO: move to struct fields)
 //
-
-MEX_DEFINE(Device_getDriverKey) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
-{
-    InputArguments input(nrhs, prhs, 1);
-    OutputArguments output(nlhs, plhs, 1);
-
-    output.set(0, input.get<SoapySDR::Device *>(0)->getDriverKey());
-}
-
-MEX_DEFINE(Device_getHardwareKey) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
-{
-    InputArguments input(nrhs, prhs, 1);
-    OutputArguments output(nlhs, plhs, 1);
-
-    output.set(0, input.get<SoapySDR::Device *>(0)->getHardwareKey());
-}
-
-MEX_DEFINE(Device_getHardwareInfo) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
-{
-    InputArguments input(nrhs, prhs, 1);
-    OutputArguments output(nlhs, plhs, 1);
-
-    output.set(0, input.get<SoapySDR::Device *>(0)->getHardwareInfo());
-}
 
 //
 // Channels API
@@ -287,57 +302,82 @@ MEX_DEFINE(Device_getHardwareInfo) (int nlhs, mxArray *plhs[], int nrhs, const m
 
 MEX_DEFINE(Device_setFrontendMapping) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
-    InputArguments input(nrhs, prhs, 3);
+    safeCall(
+        [&]()
+        {
+            InputArguments input(nrhs, prhs, 3);
 
-    input.get<SoapySDR::Device *>(0)->setFrontendMapping(
-        input.get<int>(1),
-        input.get<std::string>(2));
+            input.get<SoapySDR::Device *>(0)->setFrontendMapping(
+                input.get<int>(1),
+                input.get<std::string>(2));
+        },
+        "Device_setFrontendMapping");
 }
 
 MEX_DEFINE(Device_getFrontendMapping) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
-    InputArguments input(nrhs, prhs, 2);
-    OutputArguments output(nlhs, plhs, 1);
+    safeCall(
+        [&]()
+        {
+            InputArguments input(nrhs, prhs, 2);
+            OutputArguments output(nlhs, plhs, 1);
 
-    output.set(
-        0,
-        input.get<SoapySDR::Device *>(0)->getFrontendMapping(
-            input.get<int>(1)));
+            output.set(
+                0,
+                input.get<SoapySDR::Device *>(0)->getFrontendMapping(
+                    input.get<int>(1)));
+        },
+        "Device_getFrontendMapping");
 }
 
 MEX_DEFINE(Device_getNumChannels) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
-    InputArguments input(nrhs, prhs, 2);
-    OutputArguments output(nlhs, plhs, 1);
+    safeCall(
+        [&]()
+        {
+            InputArguments input(nrhs, prhs, 2);
+            OutputArguments output(nlhs, plhs, 1);
 
-    output.set(
-        0,
-        input.get<SoapySDR::Device *>(0)->getNumChannels(
-            input.get<int>(1)));
+            output.set(
+                0,
+                input.get<SoapySDR::Device *>(0)->getNumChannels(
+                    input.get<int>(1)));
+        },
+        "Device_getNumChannels");
 }
 
 MEX_DEFINE(Device_getChannelInfo) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
-    InputArguments input(nrhs, prhs, 3);
-    OutputArguments output(nlhs, plhs, 1);
+    safeCall(
+        [&]()
+        {
+            InputArguments input(nrhs, prhs, 3);
+            OutputArguments output(nlhs, plhs, 1);
 
-    output.set(
-        0,
-        input.get<SoapySDR::Device *>(0)->getChannelInfo(
-            input.get<int>(1),
-            input.get<size_t>(2)));
+            output.set(
+                0,
+                input.get<SoapySDR::Device *>(0)->getChannelInfo(
+                    input.get<int>(1),
+                    input.get<size_t>(2)));
+        },
+        "Device_getChannelInfo");
 }
 
 MEX_DEFINE(Device_getFullDuplex) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
-    InputArguments input(nrhs, prhs, 3);
-    OutputArguments output(nlhs, plhs, 1);
+    safeCall(
+        [&]()
+        {
+            InputArguments input(nrhs, prhs, 3);
+            OutputArguments output(nlhs, plhs, 1);
 
-    output.set(
-        0,
-        input.get<SoapySDR::Device *>(0)->getFullDuplex(
-            input.get<int>(1),
-            input.get<size_t>(2)));
+            output.set(
+                0,
+                input.get<SoapySDR::Device *>(0)->getFullDuplex(
+                    input.get<int>(1),
+                    input.get<size_t>(2)));
+        },
+        "Device_getFullDuplex");
 }
 
 //
@@ -346,41 +386,56 @@ MEX_DEFINE(Device_getFullDuplex) (int nlhs, mxArray *plhs[], int nrhs, const mxA
 
 MEX_DEFINE(Device_getStreamFormats) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
-    InputArguments input(nrhs, prhs, 3);
-    OutputArguments output(nlhs, plhs, 1);
+    safeCall(
+        [&]()
+        {
+            InputArguments input(nrhs, prhs, 3);
+            OutputArguments output(nlhs, plhs, 1);
 
-    output.set(
-        0,
-        input.get<SoapySDR::Device *>(0)->getStreamFormats(
-            input.get<int>(1),
-            input.get<size_t>(2)));
+            output.set(
+                0,
+                input.get<SoapySDR::Device *>(0)->getStreamFormats(
+                    input.get<int>(1),
+                    input.get<size_t>(2)));
+        },
+        "Device_getStreamFormats");
 }
 
 MEX_DEFINE(Device_getNativeStreamFormat) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
-    InputArguments input(nrhs, prhs, 3);
-    OutputArguments output(nlhs, plhs, 2);
+    safeCall(
+        [&]()
+        {
+            InputArguments input(nrhs, prhs, 3);
+            OutputArguments output(nlhs, plhs, 2);
 
-    double fullScale;
-    output.set(
-        0,
-        input.get<SoapySDR::Device *>(0)->getNativeStreamFormat(
-            input.get<int>(1),
-            input.get<size_t>(2),
-            fullScale));
-    output.set(1, fullScale);
+            double fullScale;
+            output.set(
+                0,
+                input.get<SoapySDR::Device *>(0)->getNativeStreamFormat(
+                    input.get<int>(1),
+                    input.get<size_t>(2),
+                    fullScale));
+            output.set(1, fullScale);
+        },
+        "Device_getNativeStreamFormat");
 }
 
 MEX_DEFINE(Device_getStreamArgsInfo) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
-    InputArguments input(nrhs, prhs, 3);
-    OutputArguments output(nlhs, plhs, 1);
+    safeCall(
+        [&]()
+        {
+            InputArguments input(nrhs, prhs, 3);
+            OutputArguments output(nlhs, plhs, 1);
 
-    output.set(
-        0,
-        input.get<SoapySDR::Device *>(0)->getStreamArgsInfo(
-            input.get<int>(1),
-            input.get<size_t>(2)));
+            output.set(
+                0,
+                input.get<SoapySDR::Device *>(0)->getStreamArgsInfo(
+                    input.get<int>(1),
+                    input.get<size_t>(2)));
+        },
+        "Device_getStreamArgsInfo");
 }
 
 //
