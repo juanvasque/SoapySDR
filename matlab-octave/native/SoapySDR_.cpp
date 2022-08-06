@@ -3,6 +3,7 @@
 
 #include "mexplus.h"
 
+#include <SoapySDR/Constants.h>
 #include <SoapySDR/Device.hpp>
 #include <SoapySDR/Errors.hpp>
 #include <SoapySDR/Formats.hpp>
@@ -22,6 +23,18 @@ using namespace mexplus;
 //
 
 #define ARRAY_SIZE(x) (sizeof(x) / sizeof(x[0]))
+
+template <typename T>
+static inline uintptr_t fromPointer(T *ptr)
+{
+    return reinterpret_cast<uintptr_t>(ptr);
+}
+
+template <typename T>
+static inline T * toPointer(uintptr_t num)
+{
+    return reinterpret_cast<T *>(num);
+}
 
 template <>
 inline mxArray *MxArray::from(const SoapySDR::ArgInfo::Type &type)
@@ -43,7 +56,7 @@ inline mxArray *MxArray::from(const SoapySDR::Kwargs &args)
 }
 
 template <typename T>
-static inline void setGlobalVariable(const std::string &name, const T &value)
+inline void setGlobalVariable(const std::string &name, const T &value)
 {
     mexPutVariable("global", name.c_str(), MxArray::from(value));
 }
@@ -53,6 +66,21 @@ struct GlobalVarInit
     GlobalVarInit(void)
     {
         #define SET_GLOBAL_VAR(x) setGlobalVariable(#x, x)
+
+        // <SoapySDR/Constants.h>
+        SET_GLOBAL_VAR(SOAPY_SDR_TX);
+        SET_GLOBAL_VAR(SOAPY_SDR_RX);
+        SET_GLOBAL_VAR(SOAPY_SDR_END_BURST);
+        SET_GLOBAL_VAR(SOAPY_SDR_HAS_TIME);
+        SET_GLOBAL_VAR(SOAPY_SDR_END_ABRUPT);
+        SET_GLOBAL_VAR(SOAPY_SDR_ONE_PACKET);
+        SET_GLOBAL_VAR(SOAPY_SDR_MORE_FRAGMENTS);
+        SET_GLOBAL_VAR(SOAPY_SDR_WAIT_TRIGGER);
+        SET_GLOBAL_VAR(SOAPY_SDR_USER_FLAG0);
+        SET_GLOBAL_VAR(SOAPY_SDR_USER_FLAG1);
+        SET_GLOBAL_VAR(SOAPY_SDR_USER_FLAG2);
+        SET_GLOBAL_VAR(SOAPY_SDR_USER_FLAG3);
+        SET_GLOBAL_VAR(SOAPY_SDR_USER_FLAG4);
 
         // <SoapySDR/Errors.hpp>
         SET_GLOBAL_VAR(SOAPY_SDR_TIMEOUT);
@@ -89,18 +117,6 @@ struct GlobalVarInit
 };
 
 static const GlobalVarInit globalVarInit;
-
-//
-// <SoapySDR/Device.hpp>
-//
-
-MEX_DEFINE(Device_enumerate) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
-{
-    InputArguments input(nrhs, prhs, 1);
-    OutputArguments output(nlhs, plhs, 1);
-
-    output.set(0, SoapySDR::Device::enumerate(input.get<std::string>(0)));
-}
 
 //
 // <SoapySDR/Logger.hpp>
@@ -190,6 +206,102 @@ mxArray *MxArray::from(const SoapySDR::ArgInfo &argInfo)
     #undef SET_FIELD
 
     return struct_array.release();
+}
+
+//
+// <SoapySDR/Device.hpp>
+//
+
+template <>
+void MxArray::to(const mxArray *array, SoapySDR::Device **device)
+{
+    if(!device)
+        mexErrMsgTxt("Null pointer exception");
+
+    uintptr_t num;
+    MxArray::to(array, &num);
+
+    *device = toPointer<SoapySDR::Device>(num);
+}
+
+MEX_DEFINE(Device_enumerate) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    InputArguments input(nrhs, prhs, 1);
+    OutputArguments output(nlhs, plhs, 1);
+
+    output.set(0, SoapySDR::Device::enumerate(input.get<std::string>(0)));
+}
+
+MEX_DEFINE(Device_make) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    InputArguments input(nrhs, prhs, 1);
+    OutputArguments output(nlhs, plhs, 1);
+
+    // For some reason, we can't specialize MxArray::from<> for pointers, so
+    // we need this extra shim.
+    output.set(0, fromPointer(SoapySDR::Device::make(input.get<std::string>(0))));
+}
+
+MEX_DEFINE(Device_unmake) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    InputArguments input(nrhs, prhs, 1);
+
+    SoapySDR::Device::unmake(input.get<SoapySDR::Device *>(0));
+}
+
+MEX_DEFINE(Device_getDriverKey) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    InputArguments input(nrhs, prhs, 1);
+    OutputArguments output(nlhs, plhs, 1);
+
+    output.set(0, input.get<SoapySDR::Device *>(0)->getDriverKey());
+}
+
+MEX_DEFINE(Device_getHardwareKey) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    InputArguments input(nrhs, prhs, 1);
+    OutputArguments output(nlhs, plhs, 1);
+
+    output.set(0, input.get<SoapySDR::Device *>(0)->getHardwareKey());
+}
+
+MEX_DEFINE(Device_getHardwareInfo) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    InputArguments input(nrhs, prhs, 1);
+    OutputArguments output(nlhs, plhs, 1);
+
+    output.set(0, input.get<SoapySDR::Device *>(0)->getHardwareInfo());
+}
+
+MEX_DEFINE(Device_setFrontendMapping) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    InputArguments input(nrhs, prhs, 3);
+
+    input.get<SoapySDR::Device *>(0)->setFrontendMapping(
+        input.get<int>(1),
+        input.get<std::string>(2));
+}
+
+MEX_DEFINE(Device_getFrontendMapping) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    InputArguments input(nrhs, prhs, 2);
+    OutputArguments output(nlhs, plhs, 1);
+
+    output.set(
+        0,
+        input.get<SoapySDR::Device *>(0)->getFrontendMapping(
+            input.get<int>(1)));
+}
+
+MEX_DEFINE(Device_getNumChannels) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    InputArguments input(nrhs, prhs, 2);
+    OutputArguments output(nlhs, plhs, 1);
+
+    output.set(
+        0,
+        input.get<SoapySDR::Device *>(0)->getNumChannels(
+            input.get<int>(1)));
 }
 
 //
