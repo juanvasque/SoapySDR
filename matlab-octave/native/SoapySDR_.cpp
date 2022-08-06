@@ -272,6 +272,9 @@ void MxArray::to(const mxArray *array, DeviceContainer *device)
     uintptr_t num;
     MxArray::at(array, "__internal", &num);
 
+    if(!num)
+        mexErrMsgTxt("Null pointer exception");
+
     device->ptr = reinterpret_cast<SoapySDR::Device *>(num);
 }
 
@@ -1492,25 +1495,416 @@ MEX_DEFINE(Device_readChannelSensor) (int nlhs, mxArray *plhs[], int nrhs, const
 // Register API
 //
 
+MEX_DEFINE(Device_listRegisterInterfaces) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    safeCall(
+        [&]()
+        {
+            InputArguments input(nrhs, prhs, 1);
+            OutputArguments output(nlhs, plhs, 1);
+
+            output.set(
+                0,
+                input.get<DeviceContainer>(0).ptr->listRegisterInterfaces());
+        },
+        "Device_listRegisterInterfaces");
+}
+
+MEX_DEFINE(Device_writeRegister) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    safeCall(
+        [&]()
+        {
+            InputArguments input(nrhs, prhs, 4);
+
+            input.get<DeviceContainer>(0).ptr->writeRegister(
+                input.get<std::string>(1),
+                input.get<unsigned>(2),
+                input.get<unsigned>(3));
+        },
+        "Device_writeRegister");
+}
+
+MEX_DEFINE(Device_readRegister) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    safeCall(
+        [&]()
+        {
+            InputArguments input(nrhs, prhs, 3);
+            OutputArguments output(nlhs, plhs, 1);
+
+            output.set(
+                0,
+                input.get<DeviceContainer>(0).ptr->readRegister(
+                    input.get<std::string>(1),
+                    input.get<unsigned>(2)));
+        },
+        "Device_readRegister");
+}
+
+MEX_DEFINE(Device_writeRegisters) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    safeCall(
+        [&]()
+        {
+            InputArguments input(nrhs, prhs, 4);
+
+            input.get<DeviceContainer>(0).ptr->writeRegisters(
+                input.get<std::string>(1),
+                input.get<unsigned>(2),
+                input.get<std::vector<unsigned>>(3));
+        },
+        "Device_writeRegisters");
+}
+
+MEX_DEFINE(Device_readRegisters) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    safeCall(
+        [&]()
+        {
+            InputArguments input(nrhs, prhs, 4);
+            OutputArguments output(nlhs, plhs, 1);
+
+            output.set(
+                0,
+                input.get<DeviceContainer>(0).ptr->readRegisters(
+                    input.get<std::string>(1),
+                    input.get<unsigned>(2),
+                    input.get<size_t>(3)));
+        },
+        "Device_readRegisters");
+}
+
 //
 // Settings API
 //
+
+MEX_DEFINE(Device_getSettingInfo) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    safeCall(
+        [&]()
+        {
+            InputArguments input(nrhs, prhs, 1);
+            OutputArguments output(nlhs, plhs, 1);
+
+            output.set(
+                0,
+                input.get<DeviceContainer>(0).ptr->getSettingInfo());
+        },
+        "Device_getSettingInfo");
+}
+
+MEX_DEFINE(Device_getSettingInfoWithKey) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    safeCall(
+        [&]()
+        {
+            InputArguments input(nrhs, prhs, 2);
+            OutputArguments output(nlhs, plhs, 1);
+
+            output.set(
+                0,
+                input.get<DeviceContainer>(0).ptr->getSettingInfo(input.get<std::string>(1)));
+        },
+        "Device_getSettingInfoWithKey");
+}
+
+MEX_DEFINE(Device_writeSetting) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    safeCall(
+        [&]()
+        {
+            InputArguments input(nrhs, prhs, 3);
+
+            input.get<DeviceContainer>(0).ptr->writeSetting(
+                input.get<std::string>(1),
+                input.get<std::string>(2));
+        },
+        "Device_writeSetting");
+}
+
+MEX_DEFINE(Device_readSetting) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    safeCall(
+        [&]()
+        {
+            InputArguments input(nrhs, prhs, 2);
+            OutputArguments output(nlhs, plhs, 1);
+
+            output.set(
+                0,
+                input.get<DeviceContainer>(0).ptr->readSetting(input.get<std::string>(1)));
+        },
+        "Device_readSetting");
+}
+
+MEX_DEFINE(Device_getChannelSettingInfo) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    safeCall(
+        [&]()
+        {
+            InputArguments input(nrhs, prhs, 3);
+            OutputArguments output(nlhs, plhs, 1);
+
+            output.set(
+                0,
+                input.get<DeviceContainer>(0).ptr->getSettingInfo(
+                    input.get<int>(1),
+                    input.get<size_t>(2)));
+        },
+        "Device_getChannelSettingInfo");
+}
+
+MEX_DEFINE(Device_getChannelSettingInfoWithKey) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    safeCall(
+        [&]()
+        {
+            InputArguments input(nrhs, prhs, 4);
+            OutputArguments output(nlhs, plhs, 1);
+
+            output.set(
+                0,
+                input.get<DeviceContainer>(0).ptr->getSettingInfo(
+                    input.get<int>(1),
+                    input.get<size_t>(2),
+                    input.get<std::string>(3)));
+        },
+        "Device_getChannelSettingInfo");
+}
+
+MEX_DEFINE(Device_writeChannelSetting) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    safeCall(
+        [&]()
+        {
+            InputArguments input(nrhs, prhs, 5);
+
+            input.get<DeviceContainer>(0).ptr->writeSetting(
+                input.get<int>(1),
+                input.get<size_t>(2),
+                input.get<std::string>(3),
+                input.get<std::string>(4));
+        },
+        "Device_writeChannelSetting");
+}
+
+MEX_DEFINE(Device_readChannelSetting) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    safeCall(
+        [&]()
+        {
+            InputArguments input(nrhs, prhs, 4);
+            OutputArguments output(nlhs, plhs, 1);
+
+            output.set(
+                0,
+                input.get<DeviceContainer>(0).ptr->readSetting(
+                    input.get<int>(1),
+                    input.get<size_t>(2),
+                    input.get<std::string>(3)));
+        },
+        "Device_readChannelSetting");
+}
 
 //
 // GPIO API
 //
 
+MEX_DEFINE(Device_listGPIOBanks) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    safeCall(
+        [&]()
+        {
+            InputArguments input(nrhs, prhs, 1);
+            OutputArguments output(nlhs, plhs, 1);
+
+            output.set(
+                0,
+                input.get<DeviceContainer>(0).ptr->listGPIOBanks());
+        },
+        "Device_listGPIOBanks");
+}
+
+MEX_DEFINE(Device_writeGPIO) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    safeCall(
+        [&]()
+        {
+            InputArguments input(nrhs, prhs, 3);
+
+            input.get<DeviceContainer>(0).ptr->writeGPIO(
+                input.get<std::string>(1),
+                input.get<unsigned>(2));
+        },
+        "Device_writeGPIO");
+}
+
+MEX_DEFINE(Device_writeGPIOMasked) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    safeCall(
+        [&]()
+        {
+            InputArguments input(nrhs, prhs, 4);
+
+            input.get<DeviceContainer>(0).ptr->writeGPIO(
+                input.get<std::string>(1),
+                input.get<unsigned>(2),
+                input.get<unsigned>(3));
+        },
+        "Device_writeGPIOMasked");
+}
+
+MEX_DEFINE(Device_readGPIO) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    safeCall(
+        [&]()
+        {
+            InputArguments input(nrhs, prhs, 2);
+            OutputArguments output(nlhs, plhs, 1);
+
+            output.set(
+                0,
+                input.get<DeviceContainer>(0).ptr->readGPIO(input.get<std::string>(1)));
+        },
+        "Device_readGPIO");
+}
+
+MEX_DEFINE(Device_writeGPIODir) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    safeCall(
+        [&]()
+        {
+            InputArguments input(nrhs, prhs, 3);
+
+            input.get<DeviceContainer>(0).ptr->writeGPIODir(
+                input.get<std::string>(1),
+                input.get<unsigned>(2));
+        },
+        "Device_writeGPIODir");
+}
+
+MEX_DEFINE(Device_writeGPIODirMasked) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    safeCall(
+        [&]()
+        {
+            InputArguments input(nrhs, prhs, 4);
+
+            input.get<DeviceContainer>(0).ptr->writeGPIODir(
+                input.get<std::string>(1),
+                input.get<unsigned>(2),
+                input.get<unsigned>(3));
+        },
+        "Device_writeGPIODirMasked");
+}
+
 //
 // I2C API
 //
+
+MEX_DEFINE(Device_writeI2C) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    safeCall(
+        [&]()
+        {
+            InputArguments input(nrhs, prhs, 3);
+
+            input.get<DeviceContainer>(0).ptr->writeI2C(
+                input.get<int>(1),
+                input.get<std::string>(2));
+        },
+        "Device_writeI2C");
+}
+
+MEX_DEFINE(Device_readI2C) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    safeCall(
+        [&]()
+        {
+            InputArguments input(nrhs, prhs, 3);
+            OutputArguments output(nlhs, plhs, 1);
+
+            output.set(
+                0,
+                input.get<DeviceContainer>(0).ptr->readI2C(
+                    input.get<int>(1),
+                    input.get<size_t>(2)));
+        },
+        "Device_readI2C");
+}
 
 //
 // SPI API
 //
 
+MEX_DEFINE(Device_transactSPI) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    safeCall(
+        [&]()
+        {
+            InputArguments input(nrhs, prhs, 4);
+            OutputArguments output(nlhs, plhs, 1);
+
+            output.set(
+                0,
+                input.get<DeviceContainer>(0).ptr->transactSPI(
+                    input.get<int>(1),
+                    input.get<unsigned>(2),
+                    input.get<size_t>(3)));
+        },
+        "Device_transactSPI");
+}
+
 //
 // UART API
 //
+
+MEX_DEFINE(Device_listUARTs) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    safeCall(
+        [&]()
+        {
+            InputArguments input(nrhs, prhs, 1);
+            OutputArguments output(nlhs, plhs, 1);
+
+            output.set(
+                0,
+                input.get<DeviceContainer>(0).ptr->listUARTs());
+        },
+        "Device_listUARTs");
+}
+
+MEX_DEFINE(Device_writeUART) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    safeCall(
+        [&]()
+        {
+            InputArguments input(nrhs, prhs, 3);
+
+            input.get<DeviceContainer>(0).ptr->writeUART(
+                input.get<std::string>(1),
+                input.get<std::string>(2));
+        },
+        "Device_writeUART");
+}
+
+MEX_DEFINE(Device_readUART) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    safeCall(
+        [&]()
+        {
+            InputArguments input(nrhs, prhs, 3);
+            OutputArguments output(nlhs, plhs, 1);
+
+            output.set(
+                0,
+                input.get<DeviceContainer>(0).ptr->readUART(
+                    input.get<std::string>(1),
+                    input.get<long>(2)));
+        },
+        "Device_readUART");
+}
 
 //////////////////////////////////////////////////////
 // mexplus
