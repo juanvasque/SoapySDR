@@ -467,6 +467,1051 @@ MEX_DEFINE(Device_getStreamArgsInfo) (int nlhs, mxArray *plhs[], int nrhs, const
 // Antenna API
 //
 
+MEX_DEFINE(Device_listAntennas) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    safeCall(
+        [&]()
+        {
+            InputArguments input(nrhs, prhs, 3);
+            OutputArguments output(nlhs, plhs, 1);
+
+            output.set(
+                0,
+                input.get<DeviceContainer>(0).ptr->listAntennas(
+                    input.get<int>(1),
+                    input.get<size_t>(2)));
+        },
+        "Device_listAntennas");
+}
+
+MEX_DEFINE(Device_setAntenna) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    safeCall(
+        [&]()
+        {
+            InputArguments input(nrhs, prhs, 4);
+
+            input.get<DeviceContainer>(0).ptr->setAntenna(
+                input.get<int>(1),
+                input.get<size_t>(2),
+                input.get<std::string>(3));
+        },
+        "Device_setAntenna");
+}
+
+MEX_DEFINE(Device_getAntenna) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    safeCall(
+        [&]()
+        {
+            InputArguments input(nrhs, prhs, 3);
+            OutputArguments output(nlhs, plhs, 1);
+
+            output.set(
+                0,
+                input.get<DeviceContainer>(0).ptr->getAntenna(
+                    input.get<int>(1),
+                    input.get<size_t>(2)));
+        },
+        "Device_getAntenna");
+}
+
+//
+// Frontend corrections API
+//
+
+MEX_DEFINE(Device_hasDCOffsetMode) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    safeCall(
+        [&]()
+        {
+            InputArguments input(nrhs, prhs, 3);
+            OutputArguments output(nlhs, plhs, 1);
+
+            output.set(
+                0,
+                input.get<DeviceContainer>(0).ptr->hasDCOffsetMode(
+                    input.get<int>(1),
+                    input.get<size_t>(2)));
+        },
+        "Device_hasDCOffset");
+}
+
+MEX_DEFINE(Device_setDCOffsetMode) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    safeCall(
+        [&]()
+        {
+            InputArguments input(nrhs, prhs, 4);
+
+            input.get<DeviceContainer>(0).ptr->setDCOffsetMode(
+                input.get<int>(1),
+                input.get<size_t>(2),
+                input.get<bool>(3));
+        },
+        "Device_setDCOffsetMode");
+}
+
+MEX_DEFINE(Device_getDCOffsetMode) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    safeCall(
+        [&]()
+        {
+            InputArguments input(nrhs, prhs, 3);
+            OutputArguments output(nlhs, plhs, 1);
+
+            output.set(
+                0,
+                input.get<DeviceContainer>(0).ptr->getDCOffsetMode(
+                    input.get<int>(1),
+                    input.get<size_t>(2)));
+        },
+        "Device_getDCOffsetMode");
+}
+
+MEX_DEFINE(Device_hasDCOffset) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    safeCall(
+        [&]()
+        {
+            InputArguments input(nrhs, prhs, 3);
+            OutputArguments output(nlhs, plhs, 1);
+
+            output.set(
+                0,
+                input.get<DeviceContainer>(0).ptr->hasDCOffset(
+                    input.get<int>(1),
+                    input.get<size_t>(2)));
+        },
+        "Device_hasDCOffset");
+}
+
+MEX_DEFINE(Device_setDCOffset) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    safeCall(
+        [&]()
+        {
+            InputArguments input(nrhs, prhs, 4);
+
+            input.get<DeviceContainer>(0).ptr->setDCOffset(
+                input.get<int>(1),
+                input.get<size_t>(2),
+                input.get<std::complex<double>>(3));
+        },
+        "Device_setDCOffset");
+}
+
+MEX_DEFINE(Device_getDCOffset) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    safeCall(
+        [&]()
+        {
+            InputArguments input(nrhs, prhs, 3);
+            OutputArguments output(nlhs, plhs, 1);
+
+            output.set(
+                0,
+                input.get<DeviceContainer>(0).ptr->getDCOffset(
+                    input.get<int>(1),
+                    input.get<size_t>(2)));
+        },
+        "Device_getDCOffset");
+}
+
+MEX_DEFINE(Device_hasIQBalanceMode) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    safeCall(
+        [&]()
+        {
+            InputArguments input(nrhs, prhs, 3);
+            OutputArguments output(nlhs, plhs, 1);
+
+            output.set(
+                0,
+                input.get<DeviceContainer>(0).ptr->hasIQBalanceMode(
+                    input.get<int>(1),
+                    input.get<size_t>(2)));
+        },
+        "Device_hasIQBalance");
+}
+
+MEX_DEFINE(Device_setIQBalanceMode) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    safeCall(
+        [&]()
+        {
+            InputArguments input(nrhs, prhs, 4);
+
+            input.get<DeviceContainer>(0).ptr->setIQBalanceMode(
+                input.get<int>(1),
+                input.get<size_t>(2),
+                input.get<bool>(3));
+        },
+        "Device_setIQBalanceMode");
+}
+
+MEX_DEFINE(Device_getIQBalanceMode) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    safeCall(
+        [&]()
+        {
+            InputArguments input(nrhs, prhs, 3);
+            OutputArguments output(nlhs, plhs, 1);
+
+            output.set(
+                0,
+                input.get<DeviceContainer>(0).ptr->getIQBalanceMode(
+                    input.get<int>(1),
+                    input.get<size_t>(2)));
+        },
+        "Device_getIQBalanceMode");
+}
+
+MEX_DEFINE(Device_hasIQBalance) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    safeCall(
+        [&]()
+        {
+            InputArguments input(nrhs, prhs, 3);
+            OutputArguments output(nlhs, plhs, 1);
+
+            output.set(
+                0,
+                input.get<DeviceContainer>(0).ptr->hasIQBalance(
+                    input.get<int>(1),
+                    input.get<size_t>(2)));
+        },
+        "Device_hasIQBalance");
+}
+
+MEX_DEFINE(Device_setIQBalance) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    safeCall(
+        [&]()
+        {
+            InputArguments input(nrhs, prhs, 4);
+
+            input.get<DeviceContainer>(0).ptr->setIQBalance(
+                input.get<int>(1),
+                input.get<size_t>(2),
+                input.get<std::complex<double>>(3));
+        },
+        "Device_setIQBalance");
+}
+
+MEX_DEFINE(Device_getIQBalance) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    safeCall(
+        [&]()
+        {
+            InputArguments input(nrhs, prhs, 3);
+            OutputArguments output(nlhs, plhs, 1);
+
+            output.set(
+                0,
+                input.get<DeviceContainer>(0).ptr->getIQBalance(
+                    input.get<int>(1),
+                    input.get<size_t>(2)));
+        },
+        "Device_getIQBalance");
+}
+
+MEX_DEFINE(Device_hasFrequencyCorrection) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    safeCall(
+        [&]()
+        {
+            InputArguments input(nrhs, prhs, 3);
+            OutputArguments output(nlhs, plhs, 1);
+
+            output.set(
+                0,
+                input.get<DeviceContainer>(0).ptr->hasFrequencyCorrection(
+                    input.get<int>(1),
+                    input.get<size_t>(2)));
+        },
+        "Device_hasFrequencyCorrection");
+}
+
+MEX_DEFINE(Device_setFrequencyCorrection) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    safeCall(
+        [&]()
+        {
+            InputArguments input(nrhs, prhs, 4);
+
+            input.get<DeviceContainer>(0).ptr->setFrequencyCorrection(
+                input.get<int>(1),
+                input.get<size_t>(2),
+                input.get<double>(3));
+        },
+        "Device_setFrequencyCorrection");
+}
+
+MEX_DEFINE(Device_getFrequencyCorrection) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    safeCall(
+        [&]()
+        {
+            InputArguments input(nrhs, prhs, 3);
+            OutputArguments output(nlhs, plhs, 1);
+
+            output.set(
+                0,
+                input.get<DeviceContainer>(0).ptr->getFrequencyCorrection(
+                    input.get<int>(1),
+                    input.get<size_t>(2)));
+        },
+        "Device_getFrequencyCorrection");
+}
+
+//
+// Gain API
+//
+
+MEX_DEFINE(Device_listGains) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    safeCall(
+        [&]()
+        {
+            InputArguments input(nrhs, prhs, 3);
+            OutputArguments output(nlhs, plhs, 1);
+
+            output.set(
+                0,
+                input.get<DeviceContainer>(0).ptr->listGains(
+                    input.get<int>(1),
+                    input.get<size_t>(2)));
+        },
+        "Device_listGains");
+}
+
+MEX_DEFINE(Device_hasGainMode) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    safeCall(
+        [&]()
+        {
+            InputArguments input(nrhs, prhs, 3);
+            OutputArguments output(nlhs, plhs, 1);
+
+            output.set(
+                0,
+                input.get<DeviceContainer>(0).ptr->hasGainMode(
+                    input.get<int>(1),
+                    input.get<size_t>(2)));
+        },
+        "Device_hasGain");
+}
+
+MEX_DEFINE(Device_setGainMode) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    safeCall(
+        [&]()
+        {
+            InputArguments input(nrhs, prhs, 4);
+
+            input.get<DeviceContainer>(0).ptr->setGainMode(
+                input.get<int>(1),
+                input.get<size_t>(2),
+                input.get<bool>(3));
+        },
+        "Device_setGainMode");
+}
+
+MEX_DEFINE(Device_getGainMode) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    safeCall(
+        [&]()
+        {
+            InputArguments input(nrhs, prhs, 3);
+            OutputArguments output(nlhs, plhs, 1);
+
+            output.set(
+                0,
+                input.get<DeviceContainer>(0).ptr->getGainMode(
+                    input.get<int>(1),
+                    input.get<size_t>(2)));
+        },
+        "Device_getGainMode");
+}
+
+MEX_DEFINE(Device_setGain) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    safeCall(
+        [&]()
+        {
+            InputArguments input(nrhs, prhs, 4);
+
+            input.get<DeviceContainer>(0).ptr->setGain(
+                input.get<int>(1),
+                input.get<size_t>(2),
+                input.get<double>(3));
+        },
+        "Device_setGain");
+}
+
+MEX_DEFINE(Device_setGainElement) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    safeCall(
+        [&]()
+        {
+            InputArguments input(nrhs, prhs, 5);
+
+            input.get<DeviceContainer>(0).ptr->setGain(
+                input.get<int>(1),
+                input.get<size_t>(2),
+                input.get<std::string>(3),
+                input.get<double>(4));
+        },
+        "Device_setGainElement");
+}
+
+MEX_DEFINE(Device_getGain) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    safeCall(
+        [&]()
+        {
+            InputArguments input(nrhs, prhs, 3);
+            OutputArguments output(nlhs, plhs, 1);
+
+            output.set(
+                0,
+                input.get<DeviceContainer>(0).ptr->getGain(
+                    input.get<int>(1),
+                    input.get<size_t>(2)));
+        },
+        "Device_getGain");
+}
+
+MEX_DEFINE(Device_getGainElement) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    safeCall(
+        [&]()
+        {
+            InputArguments input(nrhs, prhs, 4);
+            OutputArguments output(nlhs, plhs, 1);
+
+            output.set(
+                0,
+                input.get<DeviceContainer>(0).ptr->getGain(
+                    input.get<int>(1),
+                    input.get<size_t>(2),
+                    input.get<std::string>(3)));
+        },
+        "Device_getGainElement");
+}
+
+MEX_DEFINE(Device_getGainRange) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    safeCall(
+        [&]()
+        {
+            InputArguments input(nrhs, prhs, 3);
+            OutputArguments output(nlhs, plhs, 1);
+
+            output.set(
+                0,
+                input.get<DeviceContainer>(0).ptr->getGainRange(
+                    input.get<int>(1),
+                    input.get<size_t>(2)));
+        },
+        "Device_getGainRange");
+}
+
+MEX_DEFINE(Device_getGainElementRange) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    safeCall(
+        [&]()
+        {
+            InputArguments input(nrhs, prhs, 4);
+            OutputArguments output(nlhs, plhs, 1);
+
+            output.set(
+                0,
+                input.get<DeviceContainer>(0).ptr->getGainRange(
+                    input.get<int>(1),
+                    input.get<size_t>(2),
+                    input.get<std::string>(3)));
+        },
+        "Device_getGainElementRange");
+}
+
+//
+// Frequency API
+//
+
+MEX_DEFINE(Device_setFrequency) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    safeCall(
+        [&]()
+        {
+            InputArguments input(nrhs, prhs, 5);
+
+            input.get<DeviceContainer>(0).ptr->setFrequency(
+                input.get<int>(1),
+                input.get<size_t>(2),
+                input.get<double>(3),
+                SoapySDR::KwargsFromString(input.get<std::string>(4)));
+        },
+        "Device_setFrequency");
+}
+
+MEX_DEFINE(Device_setFrequencyComponent) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    safeCall(
+        [&]()
+        {
+            InputArguments input(nrhs, prhs, 5);
+
+            input.get<DeviceContainer>(0).ptr->setFrequency(
+                input.get<int>(1),
+                input.get<size_t>(2),
+                input.get<std::string>(3),
+                input.get<double>(4),
+                SoapySDR::KwargsFromString(input.get<std::string>(5)));
+        },
+        "Device_setFrequencyComponent");
+}
+
+MEX_DEFINE(Device_getFrequency) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    safeCall(
+        [&]()
+        {
+            InputArguments input(nrhs, prhs, 3);
+            OutputArguments output(nlhs, plhs, 1);
+
+            output.set(
+                0,
+                input.get<DeviceContainer>(0).ptr->getFrequency(
+                    input.get<int>(1),
+                    input.get<size_t>(2)));
+        },
+        "Device_getFrequency");
+}
+
+MEX_DEFINE(Device_getFrequencyComponent) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    safeCall(
+        [&]()
+        {
+            InputArguments input(nrhs, prhs, 4);
+            OutputArguments output(nlhs, plhs, 1);
+
+            output.set(
+                0,
+                input.get<DeviceContainer>(0).ptr->getFrequency(
+                    input.get<int>(1),
+                    input.get<size_t>(2),
+                    input.get<std::string>(3)));
+        },
+        "Device_getFrequencyComponent");
+}
+
+MEX_DEFINE(Device_getFrequencyRange) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    safeCall(
+        [&]()
+        {
+            InputArguments input(nrhs, prhs, 3);
+            OutputArguments output(nlhs, plhs, 1);
+
+            output.set(
+                0,
+                input.get<DeviceContainer>(0).ptr->getFrequencyRange(
+                    input.get<int>(1),
+                    input.get<size_t>(2)));
+        },
+        "Device_getFrequencyRange");
+}
+
+MEX_DEFINE(Device_getFrequencyComponentRange) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    safeCall(
+        [&]()
+        {
+            InputArguments input(nrhs, prhs, 4);
+            OutputArguments output(nlhs, plhs, 1);
+
+            output.set(
+                0,
+                input.get<DeviceContainer>(0).ptr->getFrequencyRange(
+                    input.get<int>(1),
+                    input.get<size_t>(2),
+                    input.get<std::string>(3)));
+        },
+        "Device_getFrequencyComponentRange");
+}
+
+MEX_DEFINE(Device_getFrequencyArgsInfo) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    safeCall(
+        [&]()
+        {
+            InputArguments input(nrhs, prhs, 3);
+            OutputArguments output(nlhs, plhs, 1);
+
+            output.set(
+                0,
+                input.get<DeviceContainer>(0).ptr->getFrequencyArgsInfo(
+                    input.get<int>(1),
+                    input.get<size_t>(2)));
+        },
+        "Device_getFrequencyArgsInfo");
+}
+
+//
+// Sample Rate API
+//
+
+MEX_DEFINE(Device_setSampleRate) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    safeCall(
+        [&]()
+        {
+            InputArguments input(nrhs, prhs, 4);
+
+            input.get<DeviceContainer>(0).ptr->setSampleRate(
+                input.get<int>(1),
+                input.get<size_t>(2),
+                input.get<double>(3));
+        },
+        "Device_setSampleRate");
+}
+
+MEX_DEFINE(Device_getSampleRate) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    safeCall(
+        [&]()
+        {
+            InputArguments input(nrhs, prhs, 3);
+            OutputArguments output(nlhs, plhs, 1);
+
+            output.set(
+                0,
+                input.get<DeviceContainer>(0).ptr->getSampleRate(
+                    input.get<int>(1),
+                    input.get<size_t>(2)));
+        },
+        "Device_getSampleRate");
+}
+
+MEX_DEFINE(Device_getSampleRateRange) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    safeCall(
+        [&]()
+        {
+            InputArguments input(nrhs, prhs, 3);
+            OutputArguments output(nlhs, plhs, 1);
+
+            output.set(
+                0,
+                input.get<DeviceContainer>(0).ptr->getSampleRateRange(
+                    input.get<int>(1),
+                    input.get<size_t>(2)));
+        },
+        "Device_getSampleRateRange");
+}
+
+//
+// Bandwidth API
+//
+
+MEX_DEFINE(Device_setBandwidth) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    safeCall(
+        [&]()
+        {
+            InputArguments input(nrhs, prhs, 4);
+
+            input.get<DeviceContainer>(0).ptr->setBandwidth(
+                input.get<int>(1),
+                input.get<size_t>(2),
+                input.get<double>(3));
+        },
+        "Device_setBandwidth");
+}
+
+MEX_DEFINE(Device_getBandwidth) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    safeCall(
+        [&]()
+        {
+            InputArguments input(nrhs, prhs, 3);
+            OutputArguments output(nlhs, plhs, 1);
+
+            output.set(
+                0,
+                input.get<DeviceContainer>(0).ptr->getBandwidth(
+                    input.get<int>(1),
+                    input.get<size_t>(2)));
+        },
+        "Device_getBandwidth");
+}
+
+MEX_DEFINE(Device_getBandwidthRange) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    safeCall(
+        [&]()
+        {
+            InputArguments input(nrhs, prhs, 3);
+            OutputArguments output(nlhs, plhs, 1);
+
+            output.set(
+                0,
+                input.get<DeviceContainer>(0).ptr->getBandwidthRange(
+                    input.get<int>(1),
+                    input.get<size_t>(2)));
+        },
+        "Device_getBandwidthRange");
+}
+
+//
+// Clocking API
+//
+
+MEX_DEFINE(Device_setMasterClockRate) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    safeCall(
+        [&]()
+        {
+            InputArguments input(nrhs, prhs, 2);
+
+            input.get<DeviceContainer>(0).ptr->setMasterClockRate(input.get<double>(1));
+        },
+        "Device_setMasterClockRate");
+}
+
+MEX_DEFINE(Device_getMasterClockRate) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    safeCall(
+        [&]()
+        {
+            InputArguments input(nrhs, prhs, 1);
+            OutputArguments output(nlhs, plhs, 1);
+
+            output.set(
+                0,
+                input.get<DeviceContainer>(0).ptr->getMasterClockRate());
+        },
+        "Device_setMasterClockRate");
+}
+
+MEX_DEFINE(Device_getMasterClockRates) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    safeCall(
+        [&]()
+        {
+            InputArguments input(nrhs, prhs, 1);
+            OutputArguments output(nlhs, plhs, 1);
+
+            output.set(
+                0,
+                input.get<DeviceContainer>(0).ptr->getMasterClockRates());
+        },
+        "Device_getMasterClockRates");
+}
+
+MEX_DEFINE(Device_setReferenceClockRate) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    safeCall(
+        [&]()
+        {
+            InputArguments input(nrhs, prhs, 2);
+
+            input.get<DeviceContainer>(0).ptr->setReferenceClockRate(input.get<double>(1));
+        },
+        "Device_setReferenceClockRate");
+}
+
+MEX_DEFINE(Device_getReferenceClockRate) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    safeCall(
+        [&]()
+        {
+            InputArguments input(nrhs, prhs, 1);
+            OutputArguments output(nlhs, plhs, 1);
+
+            output.set(
+                0,
+                input.get<DeviceContainer>(0).ptr->getReferenceClockRate());
+        },
+        "Device_setReferenceClockRate");
+}
+
+MEX_DEFINE(Device_getReferenceClockRates) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    safeCall(
+        [&]()
+        {
+            InputArguments input(nrhs, prhs, 1);
+            OutputArguments output(nlhs, plhs, 1);
+
+            output.set(
+                0,
+                input.get<DeviceContainer>(0).ptr->getReferenceClockRates());
+        },
+        "Device_getReferenceClockRates");
+}
+
+MEX_DEFINE(Device_listClockSources) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    safeCall(
+        [&]()
+        {
+            InputArguments input(nrhs, prhs, 1);
+            OutputArguments output(nlhs, plhs, 1);
+
+            output.set(
+                0,
+                input.get<DeviceContainer>(0).ptr->listClockSources());
+        },
+        "Device_listClockSources");
+}
+
+MEX_DEFINE(Device_setClockSource) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    safeCall(
+        [&]()
+        {
+            InputArguments input(nrhs, prhs, 2);
+
+            input.get<DeviceContainer>(0).ptr->setClockSource(input.get<std::string>(1));
+        },
+        "Device_setClockSource");
+}
+
+MEX_DEFINE(Device_getClockSource) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    safeCall(
+        [&]()
+        {
+            InputArguments input(nrhs, prhs, 1);
+            OutputArguments output(nlhs, plhs, 1);
+
+            output.set(
+                0,
+                input.get<DeviceContainer>(0).ptr->getClockSource());
+        },
+        "Device_setClockSource");
+}
+
+//
+// Time API
+//
+
+MEX_DEFINE(Device_listTimeSources) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    safeCall(
+        [&]()
+        {
+            InputArguments input(nrhs, prhs, 1);
+            OutputArguments output(nlhs, plhs, 1);
+
+            output.set(
+                0,
+                input.get<DeviceContainer>(0).ptr->listTimeSources());
+        },
+        "Device_listTimeSources");
+}
+
+MEX_DEFINE(Device_setTimeSource) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    safeCall(
+        [&]()
+        {
+            InputArguments input(nrhs, prhs, 2);
+
+            input.get<DeviceContainer>(0).ptr->setTimeSource(input.get<std::string>(1));
+        },
+        "Device_setTimeSource");
+}
+
+MEX_DEFINE(Device_getTimeSource) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    safeCall(
+        [&]()
+        {
+            InputArguments input(nrhs, prhs, 1);
+            OutputArguments output(nlhs, plhs, 1);
+
+            output.set(
+                0,
+                input.get<DeviceContainer>(0).ptr->getTimeSource());
+        },
+        "Device_setTimeSource");
+}
+
+MEX_DEFINE(Device_hasHardwareTime) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    safeCall(
+        [&]()
+        {
+            InputArguments input(nrhs, prhs, 2);
+            OutputArguments output(nlhs, plhs, 1);
+
+            output.set(
+                0,
+                input.get<DeviceContainer>(0).ptr->hasHardwareTime(input.get<std::string>(1)));
+        },
+        "Device_hasHardwareTime");
+}
+
+MEX_DEFINE(Device_getHardwareTime) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    safeCall(
+        [&]()
+        {
+            InputArguments input(nrhs, prhs, 2);
+            OutputArguments output(nlhs, plhs, 1);
+
+            output.set(
+                0,
+                input.get<DeviceContainer>(0).ptr->getHardwareTime(input.get<std::string>(1)));
+        },
+        "Device_getHardwareTime");
+}
+
+MEX_DEFINE(Device_setHardwareTime) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    safeCall(
+        [&]()
+        {
+            InputArguments input(nrhs, prhs, 3);
+
+            input.get<DeviceContainer>(0).ptr->setHardwareTime(
+                input.get<long long>(1),
+                input.get<std::string>(2));
+        },
+        "Device_setHardwareTime");
+}
+
+//
+// Sensor API
+//
+
+MEX_DEFINE(Device_listSensors) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    safeCall(
+        [&]()
+        {
+            InputArguments input(nrhs, prhs, 1);
+            OutputArguments output(nlhs, plhs, 1);
+
+            output.set(
+                0,
+                input.get<DeviceContainer>(0).ptr->listSensors());
+        },
+        "Device_listSensors");
+}
+
+MEX_DEFINE(Device_getSensorInfo) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    safeCall(
+        [&]()
+        {
+            InputArguments input(nrhs, prhs, 2);
+            OutputArguments output(nlhs, plhs, 1);
+
+            output.set(
+                0,
+                input.get<DeviceContainer>(0).ptr->getSensorInfo(input.get<std::string>(1)));
+        },
+        "Device_getSensorInfo");
+}
+
+MEX_DEFINE(Device_readSensor) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    safeCall(
+        [&]()
+        {
+            InputArguments input(nrhs, prhs, 2);
+            OutputArguments output(nlhs, plhs, 1);
+
+            output.set(
+                0,
+                input.get<DeviceContainer>(0).ptr->readSensor(input.get<std::string>(1)));
+        },
+        "Device_readSensor");
+}
+
+MEX_DEFINE(Device_listChannelSensors) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    safeCall(
+        [&]()
+        {
+            InputArguments input(nrhs, prhs, 3);
+            OutputArguments output(nlhs, plhs, 1);
+
+            output.set(
+                0,
+                input.get<DeviceContainer>(0).ptr->listSensors(
+                    input.get<int>(1),
+                    input.get<size_t>(2)));
+        },
+        "Device_listChannelSensors");
+}
+
+MEX_DEFINE(Device_getChannelSensorInfo) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    safeCall(
+        [&]()
+        {
+            InputArguments input(nrhs, prhs, 4);
+            OutputArguments output(nlhs, plhs, 1);
+
+            output.set(
+                0,
+                input.get<DeviceContainer>(0).ptr->getSensorInfo(
+                    input.get<int>(1),
+                    input.get<size_t>(2),
+                    input.get<std::string>(3)));
+        },
+        "Device_getChannelSensorInfo");
+}
+
+MEX_DEFINE(Device_readChannelSensor) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    safeCall(
+        [&]()
+        {
+            InputArguments input(nrhs, prhs, 4);
+            OutputArguments output(nlhs, plhs, 1);
+
+            output.set(
+                0,
+                input.get<DeviceContainer>(0).ptr->readSensor(
+                    input.get<int>(1),
+                    input.get<size_t>(2),
+                    input.get<std::string>(3)));
+        },
+        "Device_readChannelSensor");
+}
+
+//
+// Register API
+//
+
+//
+// Settings API
+//
+
+//
+// GPIO API
+//
+
+//
+// I2C API
+//
+
+//
+// SPI API
+//
+
+//
+// UART API
+//
+
 //////////////////////////////////////////////////////
 // mexplus
 //////////////////////////////////////////////////////
