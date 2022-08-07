@@ -18,6 +18,8 @@
 
 using namespace mexplus;
 
+// TODO: rename exported functions to have SoapySDR prefix
+
 //////////////////////////////////////////////////////
 // Utility
 //////////////////////////////////////////////////////
@@ -46,6 +48,24 @@ template <>
 inline mxArray *MxArray::from(const SoapySDRArgInfoType &type)
 {
     return MxArray::from(int(type));
+}
+
+template <>
+inline void *MxArray::from(const SoapySDRLogLevel &level)
+{
+    return MxArray::from(int(level));
+}
+
+template <>
+void MxArray::to(const mxArray *array, SoapySDRLogLevel *level)
+{
+    if(!level)
+        mexErrMsgTxt("Null pointer exception");
+
+    int intVal;
+    MxArray::to(array, &intVal);
+
+    *level = SoapySDRLogLevel(intVal);
 }
 
 // For simplicity, use strings in this layer
@@ -101,6 +121,17 @@ struct GlobalVarInit
         SET_GLOBAL_VAR(SOAPY_SDR_CS16);
         SET_GLOBAL_VAR(SOAPY_SDR_CS8);
 
+        // <SoapySDR/Logger.hpp>
+        SET_GLOBAL_VAR(SOAPY_SDR_FATAL);
+        SET_GLOBAL_VAR(SOAPY_SDR_CRITICAL);
+        SET_GLOBAL_VAR(SOAPY_SDR_ERROR);
+        SET_GLOBAL_VAR(SOAPY_SDR_WARNING);
+        SET_GLOBAL_VAR(SOAPY_SDR_NOTICE);
+        SET_GLOBAL_VAR(SOAPY_SDR_INFO);
+        SET_GLOBAL_VAR(SOAPY_SDR_DEBUG);
+        SET_GLOBAL_VAR(SOAPY_SDR_TRACE);
+        SET_GLOBAL_VAR(SOAPY_SDR_SSI);
+
         // <SoapySDR/Types.hpp>
         SET_GLOBAL_VAR(SOAPY_SDR_ARG_INFO_BOOL);
         SET_GLOBAL_VAR(SOAPY_SDR_ARG_INFO_INT);
@@ -135,6 +166,32 @@ static void safeCall(const Fcn &fcn, const std::string &context)
 //////////////////////////////////////////////////////
 // <SoapySDR/Logger.hpp>
 //////////////////////////////////////////////////////
+
+MEX_DEFINE(Logger_log) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    safeCall(
+        [&]()
+        {
+            InputArguments input(nrhs, prhs, 2);
+
+            SoapySDR::log(
+                input.get<SoapySDRLogLevel>(0),
+                input.get<std::string>(1).c_str());
+        },
+        "Logger_log");
+}
+
+MEX_DEFINE(Logger_setLogLevel) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    safeCall(
+        [&]()
+        {
+            InputArguments input(nrhs, prhs, 1);
+
+            SoapySDR::setLogLevel(input.get<SoapySDRLogLevel>(0));
+        },
+        "Logger_setLogLevel");
+}
 
 //////////////////////////////////////////////////////
 // <SoapySDR/Time.hpp>
