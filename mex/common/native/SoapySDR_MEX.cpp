@@ -76,80 +76,6 @@ inline mxArray *MxArray::from(const SoapySDR::Kwargs &args)
     return MxArray::from(SoapySDR::KwargsToString(args));
 }
 
-template <typename T>
-inline void setGlobalVariable(const std::string &name, const T &value)
-{
-    mexPutVariable("global", name.c_str(), MxArray::from(value));
-}
-
-struct GlobalVarInit
-{
-    GlobalVarInit(void)
-    {
-        #define SET_GLOBAL_VAR(x) setGlobalVariable(#x, x)
-
-        // <SoapySDR/Constants.h>
-        SET_GLOBAL_VAR(SOAPY_SDR_TX);
-        SET_GLOBAL_VAR(SOAPY_SDR_RX);
-        SET_GLOBAL_VAR(SOAPY_SDR_END_BURST);
-        SET_GLOBAL_VAR(SOAPY_SDR_HAS_TIME);
-        SET_GLOBAL_VAR(SOAPY_SDR_END_ABRUPT);
-        SET_GLOBAL_VAR(SOAPY_SDR_ONE_PACKET);
-        SET_GLOBAL_VAR(SOAPY_SDR_MORE_FRAGMENTS);
-        SET_GLOBAL_VAR(SOAPY_SDR_WAIT_TRIGGER);
-        SET_GLOBAL_VAR(SOAPY_SDR_USER_FLAG0);
-        SET_GLOBAL_VAR(SOAPY_SDR_USER_FLAG1);
-        SET_GLOBAL_VAR(SOAPY_SDR_USER_FLAG2);
-        SET_GLOBAL_VAR(SOAPY_SDR_USER_FLAG3);
-        SET_GLOBAL_VAR(SOAPY_SDR_USER_FLAG4);
-
-        // <SoapySDR/Errors.hpp>
-        SET_GLOBAL_VAR(SOAPY_SDR_TIMEOUT);
-        SET_GLOBAL_VAR(SOAPY_SDR_STREAM_ERROR);
-        SET_GLOBAL_VAR(SOAPY_SDR_CORRUPTION);
-        SET_GLOBAL_VAR(SOAPY_SDR_OVERFLOW);
-        SET_GLOBAL_VAR(SOAPY_SDR_NOT_SUPPORTED);
-        SET_GLOBAL_VAR(SOAPY_SDR_TIME_ERROR);
-        SET_GLOBAL_VAR(SOAPY_SDR_UNDERFLOW);
-
-        // <SoapySDR/Formats.hpp>
-        SET_GLOBAL_VAR(SOAPY_SDR_CF64);
-        SET_GLOBAL_VAR(SOAPY_SDR_CF32);
-        SET_GLOBAL_VAR(SOAPY_SDR_CU32);
-        SET_GLOBAL_VAR(SOAPY_SDR_CU16);
-        SET_GLOBAL_VAR(SOAPY_SDR_CU8);
-        SET_GLOBAL_VAR(SOAPY_SDR_CS32);
-        SET_GLOBAL_VAR(SOAPY_SDR_CS16);
-        SET_GLOBAL_VAR(SOAPY_SDR_CS8);
-
-        // <SoapySDR/Logger.hpp>
-        SET_GLOBAL_VAR(SOAPY_SDR_FATAL);
-        SET_GLOBAL_VAR(SOAPY_SDR_CRITICAL);
-        SET_GLOBAL_VAR(SOAPY_SDR_ERROR);
-        SET_GLOBAL_VAR(SOAPY_SDR_WARNING);
-        SET_GLOBAL_VAR(SOAPY_SDR_NOTICE);
-        SET_GLOBAL_VAR(SOAPY_SDR_INFO);
-        SET_GLOBAL_VAR(SOAPY_SDR_DEBUG);
-        SET_GLOBAL_VAR(SOAPY_SDR_TRACE);
-        SET_GLOBAL_VAR(SOAPY_SDR_SSI);
-
-        // <SoapySDR/Types.hpp>
-        SET_GLOBAL_VAR(SOAPY_SDR_ARG_INFO_BOOL);
-        SET_GLOBAL_VAR(SOAPY_SDR_ARG_INFO_INT);
-        SET_GLOBAL_VAR(SOAPY_SDR_ARG_INFO_FLOAT);
-        SET_GLOBAL_VAR(SOAPY_SDR_ARG_INFO_STRING);
-
-        // <SoapySDR/Version.hpp>
-        setGlobalVariable("SOAPY_SDR_API_VERSION", SoapySDR::getAPIVersion());
-        setGlobalVariable("SOAPY_SDR_ABI_VERSION", SoapySDR::getABIVersion());
-        setGlobalVariable("SOAPY_SDR_LIB_VERSION", SoapySDR::getLibVersion());
-
-        #undef SET_GLOBAL_VAR
-    }
-};
-
-static const GlobalVarInit globalVarInit;
-
 template <typename Fcn>
 static void safeCall(const Fcn &fcn, const std::string &context)
 {
@@ -181,6 +107,25 @@ static void safeCallWithErrorCode(const Fcn &fcn, const std::string &context)
     {
         mexErrMsgIdAndTxt(context.c_str(), "Unknown error.");
     }
+}
+
+//////////////////////////////////////////////////////
+// <SoapySDR/Errors.hpp>
+//////////////////////////////////////////////////////
+
+MEX_DEFINE(Error_errToStr) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    safeCall(
+        [&]()
+        {
+            InputArguments input(nrhs, prhs, 1);
+            OutputArguments output(nlhs, plhs, 1);
+
+            output.set(
+                0,
+                SoapySDR::errToStr(input.get<int>(0)));
+        },
+        "ticksToTimeNs");
 }
 
 //////////////////////////////////////////////////////
