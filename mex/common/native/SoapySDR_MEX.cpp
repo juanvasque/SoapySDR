@@ -164,6 +164,25 @@ static void safeCall(const Fcn &fcn, const std::string &context)
     }
 }
 
+template <typename Fcn>
+static void safeCallWithErrorCode(const Fcn &fcn, const std::string &context)
+{
+    try
+    {
+        int errorCode = fcn();
+        if(errorCode)
+            mexErrMsgIdAndTxt(context.c_str(), SoapySDR::errToStr(errorCode));
+    }
+    catch(const std::exception &ex)
+    {
+        mexErrMsgIdAndTxt(context.c_str(), ex.what());
+    }
+    catch(...)
+    {
+        mexErrMsgIdAndTxt(context.c_str(), "Unknown error.");
+    }
+}
+
 //////////////////////////////////////////////////////
 // <SoapySDR/Logger.hpp>
 //////////////////////////////////////////////////////
@@ -403,7 +422,7 @@ void MxArray::to(const mxArray *array, DeviceContainer *device)
 }
 
 //
-// Stream helper struct
+// Stream helper structs
 //
 
 struct StreamContainer
@@ -415,18 +434,73 @@ struct StreamContainer
     std::string format;
     std::vector<size_t> channels;
     std::string args;
+    size_t mtu{0};
 };
+
+template <typename T>
+struct RxStreamResult
+{
+    int errorCode{0};
+
+    std::vector<std::vector<std::complex<T>>> samples;
+    int flags{0};
+    long long timeNs{0};
+};
+
+struct TxStreamResult
+{
+    int errorCode{0};
+
+    size_t elemsWritten{0};
+    int flags{0};
+};
+
+struct StreamStatus
+{
+    int errorCode{0};
+
+    size_t chanMask{0};
+    int flags{0};
+    long long timeNs{0};
+};
+
+// We need this because we can't do partially specialized templates.
+// TODO: does this end up with the matrices we want?
+#define MXARRAY_FROM_RXSTREAMRESULT(T) \
+    template <> \
+    mxArray *MxArray::from(const RxStreamResult<T> &result) \
+    { \
+        const char *fields[] = {"errorCode", "samples", "flags", "timeNs"}; \
+        MxArray struct_array(MxArray::Struct(ARRAY_SIZE(fields), fields)); \
+ \
+        struct_array.set("errorCode", result.errorCode); \
+        struct_array.set("samples", result.samples); \
+ \
+        return struct_array.release(); \
+    }
+
+/*
+MXARRAY_FROM_RXSTREAMRESULT(int8_T)
+MXARRAY_FROM_RXSTREAMRESULT(int16_T)
+MXARRAY_FROM_RXSTREAMRESULT(int32_T)
+MXARRAY_FROM_RXSTREAMRESULT(uint8_T)
+MXARRAY_FROM_RXSTREAMRESULT(uint16_T)
+MXARRAY_FROM_RXSTREAMRESULT(uint32_T)
+*/
+MXARRAY_FROM_RXSTREAMRESULT(float)
+MXARRAY_FROM_RXSTREAMRESULT(double)
 
 template <>
 mxArray *MxArray::from(const StreamContainer &stream)
 {
-    const char *fields[] = {"format", "channels", "args", "__internalStream", "__internalDevice"};
+    const char *fields[] = {"format", "channels", "args", "mtu", "__internalStream", "__internalDevice"};
     MxArray struct_array(MxArray::Struct(ARRAY_SIZE(fields), fields));
 
     struct_array.set("direction", stream.direction);
     struct_array.set("format", stream.format);
     struct_array.set("channels", stream.channels);
     struct_array.set("args", stream.args);
+    struct_array.set("mtu", stream.device->getStreamMTU(stream.stream));
     struct_array.set("__internalStream", reinterpret_cast<uintptr_t>(stream.stream));
     struct_array.set("__internalDevice", reinterpret_cast<uintptr_t>(stream.device));
 
@@ -442,6 +516,7 @@ void MxArray::to(const mxArray *array, StreamContainer *stream)
     MxArray::at(array, "format", &stream->format);
     MxArray::at(array, "channels", &stream->channels);
     MxArray::at(array, "args", &stream->args);
+    MxArray::at(array, "mtu", &stream->mtu);
     stream->stream = getPointerField<SoapySDR::Stream>(array, "__internalStream");
     stream->device = getPointerField<SoapySDR::Device>(array, "__internalDevice");
 }
@@ -666,6 +741,105 @@ MEX_DEFINE(Device_setupStream) (int nlhs, mxArray *plhs[], int nrhs, const mxArr
         },
         "Device_setupStream");
 }
+
+MEX_DEFINE(Stream_close) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    safeCall(
+        [&]()
+        {
+            InputArguments input(nrhs, prhs, 1);
+
+            auto stream = input.get<StreamContainer>(0);
+            stream.device->closeStream(stream.stream);
+        },
+        "Stream_close");
+}
+
+MEX_DEFINE(Stream_activate) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    safeCallWithErrorCode(
+        [&]()
+        {
+            InputArguments input(nrhs, prhs, 4);
+
+            auto stream = input.get<StreamContainer>(0);
+            return stream.device->activateStream(
+                stream.stream,
+                input.get<int>(1),
+                input.get<long long>(2),
+                input.get<size_t>(3));
+        },
+        "Stream_activate");
+}
+
+MEX_DEFINE(Stream_deactivate) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    safeCallWithErrorCode(
+        [&]()
+        {
+            InputArguments input(nrhs, prhs, 3);
+
+            auto stream = input.get<StreamContainer>(0);
+            return stream.device->deactivateStream(
+                stream.stream,
+                input.get<int>(1),
+                input.get<long long>(2));
+        },
+        "Stream_deactivate");
+}
+
+template <typename T>
+static void streamReadStream(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[], const std::string &expectedFormat)
+{
+    safeCall(
+        [&]()
+        {
+            InputArguments input(nrhs, prhs, 3);
+            OutputArguments output(nlhs, plhs, 1);
+
+            const auto stream = input.get<StreamContainer>(0);
+            if(stream.format != expectedFormat)
+            {
+                std::string errorMsg("Invalid format "+stream.format+". Expected "+expectedFormat+".");
+                mexErrMsgIdAndTxt("Device_readStream", errorMsg.c_str());
+            }
+
+            const auto numElems = input.get<size_t>(1);
+
+            RxStreamResult<T> result;
+            result.samples.resize(stream.channels.size());
+            for(auto &stream: result.samples)
+                stream.resize(numElems);
+
+            std::vector<void *> buffs;
+            std::transform(
+                result.samples.begin(),
+                result.samples.end(),
+                std::back_inserter(buffs),
+                [](std::vector<std::complex<T>> &vec)
+                {
+                    return (void*)vec.data();
+                });
+        },
+        "Stream_readStream");
+}
+
+#define MEX_READSTREAM(ctype, format) \
+    MEX_DEFINE(stream_readStream ## format) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) \
+    { \
+        streamReadStream<ctype>(nlhs, plhs, nrhs, prhs, SOAPY_SDR_ ## format); \
+    }
+
+/*
+MEX_READSTREAM(int8_T, CS8)
+MEX_READSTREAM(int16_T, CS16)
+MEX_READSTREAM(int32_T, CS32)
+MEX_READSTREAM(uint8_T, CU8)
+MEX_READSTREAM(uint16_T, CU16)
+MEX_READSTREAM(uint32_T, CU32)
+*/
+MEX_READSTREAM(float, CF32)
+MEX_READSTREAM(double, CF64)
 
 //
 // Antenna API
