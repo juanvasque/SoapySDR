@@ -19,6 +19,7 @@
 using namespace mexplus;
 
 // TODO: rename exported functions to have SoapySDR prefix
+// TODO: consistency between mexErrMsgTxt and mexErrMsgIdAndTxt
 
 //////////////////////////////////////////////////////
 // Utility
@@ -352,6 +353,19 @@ mxArray *MxArray::from(const SoapySDR::ArgInfo &argInfo)
 // <SoapySDR/Device.hpp>
 //////////////////////////////////////////////////////
 
+// Since we can't specialize MxArray::from() for pointers
+template <typename T>
+T * getPointerField(const mxArray *array, const std::string &name)
+{
+    if(!array)
+        mexErrMsgTxt("Null pointer exception");
+
+    uintptr_t uintptr = 0;
+    MxArray::at(array, name.c_str(), &uintptr);
+
+    return reinterpret_cast<T *>(uintptr);
+}
+
 //
 // Device helper struct
 //
@@ -385,13 +399,7 @@ void MxArray::to(const mxArray *array, DeviceContainer *device)
     if(!device)
         mexErrMsgTxt("Null pointer exception");
 
-    uintptr_t num;
-    MxArray::at(array, "__internal", &num);
-
-    if(!num)
-        mexErrMsgTxt("Null pointer exception");
-
-    device->ptr = reinterpret_cast<SoapySDR::Device *>(num);
+    device->ptr = getPointerField<SoapySDR::Device>(array, "__internal");
 }
 
 //
@@ -403,10 +411,40 @@ struct StreamContainer
     SoapySDR::Stream *stream{nullptr};
     SoapySDR::Device *device{nullptr};
 
+    int direction{SOAPY_SDR_TX};
     std::string format;
     std::vector<size_t> channels;
     std::string args;
 };
+
+template <>
+mxArray *MxArray::from(const StreamContainer &stream)
+{
+    const char *fields[] = {"format", "channels", "args", "__internalStream", "__internalDevice"};
+    MxArray struct_array(MxArray::Struct(ARRAY_SIZE(fields), fields));
+
+    struct_array.set("direction", stream.direction);
+    struct_array.set("format", stream.format);
+    struct_array.set("channels", stream.channels);
+    struct_array.set("args", stream.args);
+    struct_array.set("__internalStream", reinterpret_cast<uintptr_t>(stream.stream));
+    struct_array.set("__internalDevice", reinterpret_cast<uintptr_t>(stream.device));
+
+    return struct_array.release();
+}
+
+template <>
+void MxArray::to(const mxArray *array, StreamContainer *stream)
+{
+    if(!stream)
+        mexErrMsgTxt("Null pointer exception");
+
+    MxArray::at(array, "format", &stream->format);
+    MxArray::at(array, "channels", &stream->channels);
+    MxArray::at(array, "args", &stream->args);
+    stream->stream = getPointerField<SoapySDR::Stream>(array, "__internalStream");
+    stream->device = getPointerField<SoapySDR::Device>(array, "__internalDevice");
+}
 
 //
 // Enumeration
@@ -594,6 +632,39 @@ MEX_DEFINE(Device_getStreamArgsInfo) (int nlhs, mxArray *plhs[], int nrhs, const
                     input.get<size_t>(2)));
         },
         "Device_getStreamArgsInfo");
+}
+
+MEX_DEFINE(Device_setupStream) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    safeCall(
+        [&]()
+        {
+            InputArguments input(nrhs, prhs, 5);
+            OutputArguments output(nlhs, plhs, 1);
+
+            auto deviceContainer = input.get<DeviceContainer>(0);
+
+            StreamContainer streamContainer
+            {
+                nullptr,
+                deviceContainer.ptr,
+                input.get<int>(1),
+                input.get<std::string>(2),
+                input.get<std::vector<size_t>>(3),
+                input.get<std::string>(4)
+            };
+            streamContainer.stream = streamContainer.device->setupStream(
+                streamContainer.direction,
+                streamContainer.format,
+                streamContainer.channels,
+                SoapySDR::KwargsFromString(streamContainer.args));
+
+            if(!streamContainer.stream)
+                mexErrMsgIdAndTxt("Device_setupStream", "Failed to initialize stream.");
+
+            output.set(0, streamContainer);
+        },
+        "Device_setupStream");
 }
 
 //
