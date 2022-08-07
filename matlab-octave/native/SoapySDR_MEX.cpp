@@ -51,7 +51,7 @@ inline mxArray *MxArray::from(const SoapySDRArgInfoType &type)
 }
 
 template <>
-inline void *MxArray::from(const SoapySDRLogLevel &level)
+inline mxArray *MxArray::from(const SoapySDRLogLevel &level)
 {
     return MxArray::from(int(level));
 }
@@ -159,13 +159,43 @@ static void safeCall(const Fcn &fcn, const std::string &context)
     }
     catch(...)
     {
-        mexErrMsgIdAndTxt(context.c_str(), "Unknown error");
+        mexErrMsgIdAndTxt(context.c_str(), "Unknown error.");
     }
 }
 
 //////////////////////////////////////////////////////
 // <SoapySDR/Logger.hpp>
 //////////////////////////////////////////////////////
+
+// TODO: how does memory management work with this?
+static const mxArray *mxLoggerFcn = nullptr;
+
+static void SoapyLogHandler(const SoapySDRLogLevel logLevel, const char *message)
+{
+    safeCall(
+        [&]()
+        {
+            if(!mxLoggerFcn)
+                mexErrMsgIdAndTxt("SoapyLogHandler", "This function shouldn't be called without an active log handler.");
+            if(!message)
+                mexErrMsgIdAndTxt("SoapyLogHandler", "Null message.");
+
+            mxArray *lhs{nullptr};
+            mxArray *rhs[3]
+            {
+                const_cast<mxArray *>(mxLoggerFcn),
+                MxArray::from(logLevel),
+                MxArray::from(message),
+            };
+
+            mexCallMATLAB(0, &lhs, ARRAY_SIZE(rhs), rhs, "feval");
+
+            // Clean up
+            mxDestroyArray(rhs[1]);
+            mxDestroyArray(rhs[0]);
+        },
+        "SoapyLogHandler");
+}
 
 MEX_DEFINE(Logger_log) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
@@ -191,6 +221,35 @@ MEX_DEFINE(Logger_setLogLevel) (int nlhs, mxArray *plhs[], int nrhs, const mxArr
             SoapySDR::setLogLevel(input.get<SoapySDRLogLevel>(0));
         },
         "Logger_setLogLevel");
+}
+
+MEX_DEFINE(Logger_registerLogHandler) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    safeCall(
+        [&]()
+        {
+            if(nrhs != 1)
+                mexErrMsgIdAndTxt("Logger_registerLogHandler", "Expected one input argument.");
+            if(!prhs[0])
+                mexErrMsgIdAndTxt("Logger_registerLogHandler", "Null argument.");
+            if(!mxIsClass(prhs[0], "function_handle"))
+                mexErrMsgIdAndTxt("Logger_registerLogHandler", "Expected a function handle.");
+
+            mxLoggerFcn = prhs[0];
+
+            SoapySDR::registerLogHandler(&SoapyLogHandler);
+        },
+        "Logger_registerLogHandler");
+}
+
+MEX_DEFINE(Logger_clearLogHandler) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    safeCall(
+        [&]()
+        {
+            SoapySDR::registerLogHandler(nullptr);
+        },
+        "Logger_clearLogHandler");
 }
 
 //////////////////////////////////////////////////////
