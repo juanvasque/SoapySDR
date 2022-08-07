@@ -39,11 +39,6 @@ include(CMakeDependentOption)
 cmake_dependent_option(ENABLE_OCTAVE "Enable Octave bindings" ON "ENABLE_LIBRARY;OCTAVE_FOUND" OFF)
 add_feature_info(Octave ENABLE_OCTAVE "Octave bindings v${OCTAVE_VERSION_STRING}")
 if(ENABLE_OCTAVE)
-    # TODO: still the case without SWIG?
-    if(APPLE AND CMAKE_COMPILER_IS_GNUCXX)
-        message(WARNING "Octave bindings built with GCC on OS X are not officially supported and may not build.")
-    endif()
-
     set(include_dirs
         ${CMAKE_CURRENT_SOURCE_DIR}/native/include
         ${PROJECT_SOURCE_DIR}/include
