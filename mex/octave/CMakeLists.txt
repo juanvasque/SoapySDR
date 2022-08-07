@@ -36,11 +36,11 @@ string(REPLACE ";" ";-l" library_flags "-l${libraries}")
 # TODO: not portable
 add_custom_command(
     OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/SoapySDR_MEX.mex
-    COMMENT "Building Octave bindings"
+    COMMENT "Building SoapySDR_MEX.mex for Octave"
     COMMAND ${OCTAVE_MKOCTFILE_EXECUTABLE} --mex ${include_flags} ${libdir_flags} ${library_flags} ${CMAKE_CURRENT_SOURCE_DIR}/../common/native/SoapySDR_MEX.cpp
     DEPENDS SoapySDR
     DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/../common/native/SoapySDR_MEX.cpp)
 
-add_custom_target(Octave_SoapySDR ALL
+add_custom_target(SoapySDR_MEX_Octave ALL
     DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/SoapySDR_MEX.mex
     SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/../common/native/SoapySDR_MEX.cpp)
