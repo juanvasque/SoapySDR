@@ -236,18 +236,18 @@ mxArray *MxArray::from(const SoapySDR::ArgInfo &argInfo)
 // <SoapySDR/Device.hpp>
 //////////////////////////////////////////////////////
 
+//
+// Device helper struct
+//
+
 // Since we can't specialize from() for pointers
-template <typename T>
-struct Container
+struct DeviceContainer
 {
-    T *ptr{nullptr};
+    SoapySDR::Device *ptr{nullptr};
 
-    Container(void) = default;
-    Container(T *ptr_): ptr(ptr_){}
+    DeviceContainer(void) = default;
+    DeviceContainer(SoapySDR::Device *ptr_): ptr(ptr_){}
 };
-
-using DeviceContainer = Container<SoapySDR::Device>;
-using StreamContainer = Container<SoapySDR::Stream>;
 
 template <>
 mxArray *MxArray::from(const DeviceContainer &device)
@@ -277,6 +277,24 @@ void MxArray::to(const mxArray *array, DeviceContainer *device)
 
     device->ptr = reinterpret_cast<SoapySDR::Device *>(num);
 }
+
+//
+// Stream helper struct
+//
+
+struct StreamContainer
+{
+    SoapySDR::Stream *stream{nullptr};
+    SoapySDR::Device *device{nullptr};
+
+    std::string format;
+    std::vector<size_t> channels;
+    std::string args;
+};
+
+//
+// Enumeration
+//
 
 MEX_DEFINE(Device_enumerate) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
@@ -319,10 +337,6 @@ MEX_DEFINE(Device_unmake) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *p
         },
         "Device_unmake");
 }
-
-//
-// Identification API (TODO: move to struct fields)
-//
 
 //
 // Channels API
