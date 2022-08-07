@@ -71,9 +71,13 @@ void MxArray::to(const mxArray *array, SoapySDRLogLevel *level)
 
 // For simplicity, use strings in this layer
 template <>
-inline mxArray *MxArray::from(const SoapySDR::Kwargs &args)
+mxArray *MxArray::from(const SoapySDR::Kwargs &args)
 {
-    return MxArray::from(SoapySDR::KwargsToString(args));
+    std::string output("{");
+    output += SoapySDR::KwargsToString(args);
+    output += "}";
+
+    return MxArray::from(output);
 }
 
 template <typename Fcn>
