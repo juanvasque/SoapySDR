@@ -18,9 +18,8 @@
 
 using namespace mexplus;
 
-// TODO: rename exported functions to have SoapySDR prefix
 // TODO: consistency between mexErrMsgTxt and mexErrMsgIdAndTxt
-// TODO: policy on when to bail on streaming error codes or give ability user
+// TODO: policy on when to bail on streaming error codes or give ability for user to bail
 
 //////////////////////////////////////////////////////
 // Utility
