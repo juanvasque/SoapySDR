@@ -42,7 +42,28 @@ static inline T * toPointer(uintptr_t num)
 template <>
 inline mxArray *MxArray::from(const SoapySDR::ArgInfo::Type &type)
 {
-    return MxArray::from(int(type));
+    std::string ret;
+
+#define CASE(x) \
+    case SoapySDR::ArgInfo::x: \
+        ret = #x; \
+        break;
+
+    // TODO: as string
+    switch(type)
+    {
+    CASE(BOOL)
+    CASE(INT)
+    CASE(FLOAT)
+    CASE(STRING)
+
+    default:
+        ret = "INVALID";
+        break;
+    }
+
+    return MxArray::from(ret);
+#undef CASE
 }
 
 template <>
@@ -981,7 +1002,7 @@ MEX_DEFINE(Device_getAntenna) (int nlhs, mxArray *plhs[], int nrhs, const mxArra
 }
 
 //
-// Frontend corrections API
+// Frontend Corrections API
 //
 
 MEX_DEFINE(Device_hasDCOffsetMode) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
