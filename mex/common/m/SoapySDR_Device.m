@@ -377,14 +377,14 @@ classdef SoapySDR_Device < handle
             SoapySDR_MEX("Device_setTimeSource", this.__internal, rate);
         end
 
-        function clockSource = getClockSource(this)
-        %GETCLOCKSOURCE Get the clock source.
-            clockSource = SoapySDR_MEX("Device_getClockSource", this.__internal);
+        function timeSource = getTimeSource(this)
+        %GETtimeSOURCE Get the time source.
+            timeSource = SoapySDR_MEX("Device_getTimeSource", this.__internal);
         end
 
-        function clockSources = listClockSources(this)
-        %GETCLOCKSOURCES list the valid clock sources.
-            clockSources = SoapySDR_MEX("Device_listClockSources", this.__internal);
+        function timeSources = listTimeSources(this)
+        %GETtimeSOURCES list the valid time sources.
+            timeSources = SoapySDR_MEX("Device_listTimeSources", this.__internal);
         end
 
         function value = hasHardwareTime(this, what)
@@ -394,7 +394,7 @@ classdef SoapySDR_Device < handle
                 what_ = what
             end
 
-            value = SoapySDR_MEX("Device_hasHardwareTime", this, what_)
+            value = SoapySDR_MEX("Device_hasHardwareTime", this.__internal, what_);
         end
 
         function value = getHardwareTime(this, what)
@@ -404,7 +404,7 @@ classdef SoapySDR_Device < handle
                 what_ = what
             end
 
-            value = SoapySDR_MEX("Device_getHardwareTime", this, what_)
+            value = SoapySDR_MEX("Device_getHardwareTime", this.__internal, what_);
         end
 
         function setHardwareTime(this, timeNs, what)
@@ -414,7 +414,223 @@ classdef SoapySDR_Device < handle
                 what_ = what
             end
 
-            SoapySDR_MEX("Device_setHardwareTime", this, timeNs, what_)
+            SoapySDR_MEX("Device_setHardwareTime", this.__internal, timeNs, what_);
+        end
+
+        %
+        % Sensor API
+        %
+
+        function sensors = listSensors(this)
+        %LISTSENSORS List the available global readback sensors.
+            sensors = SoapySDR_MEX("Device_listSensor", this.__internal);
+        end
+
+        function sensorInfo = getSensorInfo(this, sensor)
+        %GETSENSORINFO Get meta-information about a sensor.
+            sensorInfo = SoapySDR_MEX("Device_getSensorInfo", this.__internal, sensor);
+        end
+
+        function value = readSensor(this, sensor)
+        %READSENSOR Read a global sensor.
+            value = SoapySDR_MEX("Device_readSensor", this.__internal, sensor);
+        end
+
+        function sensors = listChannelSensors(this, direction, channel)
+        %LISTCHANNELSENSORS List the available channel readback sensors.
+            sensors = SoapySDR_MEX("Device_listChannelSensor", this.__internal, direction, channel);
+        end
+
+        function sensorInfo = getChannelSensorInfo(this, sensor, direction, channel)
+        %GETCHANNELSENSORINFO Get meta-information about a sensor.
+            sensorInfo = SoapySDR_MEX("Device_getChannelSensorInfo", this.__internal, sensor, direction, channel);
+        end
+
+        function value = readChannelSensor(this, sensor, direction, channel)
+        %READCHANNELSENSOR Read a channel sensor.
+            value = SoapySDR_MEX("Device_readChannelSensor", this.__internal, sensor, direction, channel);
+        end
+
+        %
+        % Register API
+        %
+
+        function registerInterfaces = listRegisterInterfaces(this)
+        %LISTREGISTERINTERFACES List register interfaces.
+            registerInterfaces = SoapySDR_MEX("Device_listRegisterInterfaces", this.__internal);
+        end
+
+        function writeRegister(this, name, addr, value)
+        %WRITEREGISTER Write the given register.
+            SoapySDR_MEX("Device_writeRegister", this.__internal, name, addr, value);
+        end
+
+        function value = readRegister(this, name, addr)
+        %READREGISTER Read the given register.
+            value = SoapySDR_MEX("Device_readRegister", this.__internal, name, addr);
+        end
+
+        function writeRegisters(this, name, addr, value)
+        %WRITEREGISTERS Write a memory block given the interface name.
+            SoapySDR_MEX("Device_writeRegisters", this.__internal, name, addr, value);
+        end
+
+        function value = readRegisters(this, name, addr, length)
+        %READREGISTERS Read a memory block given the interface name.
+            value = SoapySDR_MEX("Device_readRegisters", this.__internal, name, addr, length);
+        end
+
+        %
+        % Settings API
+        %
+
+        function settingInfo = getSettingInfo(this)
+        %GETSETTINGINFO Get all global setting info.
+            settingInfo = SoapySDR_MEX("Device_getSettingInfo", this.__internal);
+        end
+
+        function settingInfo = getSettingInfoWithKey(this, key)
+        %GETSETTINGINFOWITHKEY Get a global setting's info.
+            settingInfo = SoapySDR_MEX("Device_getSettingInfoWithKey", this.__internal, key);
+        end
+
+        function writeSetting(this, key, value)
+        %WRITESETTING Write a global setting's value.
+            % TODO: not working
+            SoapySDR_MEX("Device_writeSetting", this.__internal, key, this._toString(value));
+        end
+
+        function value = readSetting(this, key)
+        %READSETTING Read a global setting.
+            value = SoapySDR_MEX("Device_readSetting", this.__internal, key);
+        end
+
+        function settingInfo = getChannelSettingInfo(this, direction, channel)
+        %GETSETTINGINFO Get all global setting info.
+            settingInfo = SoapySDR_MEX("Device_getChannelSettingInfo", this.__internal, direction, channel);
+        end
+
+        function settingInfo = getChannelSettingInfoWithKey(this, direction, channel, key)
+        %GETSETTINGINFOWITHKEY Get a global setting's info.
+            settingInfo = SoapySDR_MEX("Device_getChannelSettingInfoWithKey", this.__internal, direction, channel, key);
+        end
+
+        function writeChannelSetting(this, direction, channel, key, value)
+        %WRITESETTING Write a global setting's value.
+            % TODO: not working
+            SoapySDR_MEX("Device_writeChannelSetting", this.__internal, direction, channel, key, this._toString(value));
+        end
+
+        function value = readChannelSetting(this, direction, channel, key)
+        %READSETTING Read a global setting.
+            value = SoapySDR_MEX("Device_readChannelSetting", this.__internal, direction, channel, key);
+        end
+
+        %
+        % GPIO API
+        %
+
+        function gpioBanks = listGPIOBanks(this)
+        %LISTGPIOBANKS Return a list of the device's GPIO banks.
+            gpioBanks = SoapySDR_MEX("Device_listGPIOBanks", this.__internal);
+        end
+
+        function writeGPIO(this, bank, value)
+        %WRITEGPIO Write a value to GPIO.
+            SoapySDR_MEX("Device_writeGPIO", this.__internal, bank, value);
+        end
+
+        function writeGPIOMasked(this, bank, value, mask)
+        %WRITEGPIO Write a value to GPIO, with a given modification mask.
+            SoapySDR_MEX("Device_writeGPIOMasked", this.__internal, bank, value, mask);
+        end
+
+        function value = readGPIO(this, bank)
+        %READGPIO Read a value from GPIO.
+            value = SoapySDR_MEX("Device_readGPIO", this.__internal, bank);
+        end
+
+        function writeGPIODir(this, bank, dir)
+        %WRITEGPIODIR Write the TX/RX direction to GPIO.
+            SoapySDR_MEX("Device_writeGPIODir", this.__internal, bank, dir);
+        end
+
+        function writeGPIODirMasked(this, bank, dir, mask)
+        %WRITEGPIODIRMASK Write the TX/RX direction to GPIO, with a given modification mask.
+            SoapySDR_MEX("Device_writeGPIODirMasked", this.__internal, bank, dir, mask);
+        end
+
+        function dir = readGPIODir(this, bank)
+        %READGPIODir Read the GPIO TX/RX direction.
+            dir = SoapySDR_MEX("Device_readGPIODir", this.__internal, bank);
+        end
+
+        %
+        % I2C API
+        %
+
+        function writeI2C(this, addr, data)
+        %WRITEI2C Write I2C data.
+            SoapySDR_MEX("Device_writeI2C", this.__internal, addr, data);
+        end
+
+        function data = readI2C(this, addr, numBytes)
+        %READI2C Read I2C data.
+            data = SoapySDR_MEX("Device_readI2C", this.__internal, addr, numBytes);
+        end
+
+        %
+        % SPI API
+        %
+
+        function output = transactSPI(this, addr, data, numBits)
+        %TRANSACTSPI Start a SPI transaction and return the response.
+            output = SoapySDR_MEX("Device_transactSPI", this.__internal, addr, data, numBits);
+        end
+
+        %
+        % UART API
+        %
+
+        function uarts = listUARTs(this)
+        %LISTUARTS List the device's UARTs.
+            uarts = SoapySDR_MEX("Device_listUARTs", this.__internal);
+        end
+
+        function writeUART(this, which, data)
+        %WRITEUART Write to the given UART device.
+            SoapySDR_MEX("Device_writeUART", this.__internal, which, data);
+        end
+
+        function value = readUART(this, which, timeoutUs)
+        %READUART Read from the given UART device.
+            timeoutUs_ = 100000
+            if nargin > 2
+                timeoutUs_ = timeoutUs
+            end
+
+            value = SoapySDR_MEX("Device_readUART", this.__internal, which, timeoutUs_)
+        end
+    end
+
+    %
+    % Internal
+    %
+
+    methods (Private)
+        function str = _toString(value)
+            if isbool(value)
+                if value
+                    str = "true"
+                else
+                    str = "false"
+                end
+            elseif isnumeric(value)
+                str = num2str(value)
+            else
+                % If not a string, good luck.
+                str = value
+            end
         end
     end
 

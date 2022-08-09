@@ -2031,6 +2031,7 @@ MEX_DEFINE(Device_writeRegisters) (int nlhs, mxArray *plhs[], int nrhs, const mx
         {
             InputArguments input(nrhs, prhs, 4);
 
+            // TODO: vector not importing correctly
             input.get<DeviceContainer>(0).ptr->writeRegisters(
                 input.get<std::string>(1),
                 input.get<unsigned>(2),
