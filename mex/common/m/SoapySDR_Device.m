@@ -104,6 +104,22 @@ classdef SoapySDR_Device < handle
             antenna = SoapySDR_MEX("Device_getAntenna", this.__internal, direction, channel);
         end
 
+        function stream = setupStream(this, direction, format, channels, args)
+        %SETUPSTREAM Initialize a transmit/receive stream.
+            args_ = "";
+            if nargsin >= 5
+                args_ = args;
+            end
+
+            if direction == SoapySDR_Direction.Tx
+                stream = SoapySDR_TxStream(SoapySDR_MEX("Device_setupStream", this.__internal, direction, format, channels, args_))
+            elseif direction == SoapySDR_Direction.Rx
+                stream = SoapySDR_RxStream(SoapySDR_MEX("Device_setupStream", this.__internal, direction, format, channels, args_))
+            else
+                error("Invalid type");
+            end
+        end
+
         %
         % Frontend Corrections API
         %
