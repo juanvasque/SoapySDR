@@ -15,6 +15,7 @@ include(CMakeDependentOption)
 cmake_dependent_option(ENABLE_OCTAVE "Enable Octave bindings" ON "ENABLE_LIBRARY;OCTAVE_FOUND" OFF)
 add_feature_info(Octave ENABLE_OCTAVE "Octave bindings v${OCTAVE_VERSION_STRING}")
 if(NOT ENABLE_OCTAVE)
+    return()
 endif()
 
 set(include_dirs
@@ -44,3 +45,14 @@ add_custom_command(
 add_custom_target(SoapySDR_MEX_Octave ALL
     DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/SoapySDR_MEX.mex
     SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/../common/native/SoapySDR_MEX.cpp)
+
+########################################################################
+# Testing
+########################################################################
+
+# .m files need to be in the same directory as the corresponding MEX
+# file, so copy them and execute the tests here.
+foreach(src ${m_files})
+    # TODO: copy to target output directory
+    file(COPY ${src} DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+endforeach()
