@@ -9,13 +9,11 @@ function test_suite=TestErrorCodes
     initTestSuite;
 
 function testErrorCodes
-    SoapySDR;
-
-    assertEqual("TIMEOUT", SoapySDR.Error.toString(SoapySDR.Error.TIMEOUT));
-    assertEqual("STREAM_ERROR", SoapySDR.Error.toString(SoapySDR.Error.STREAM_ERROR));
-    assertEqual("CORRUPTION", SoapySDR.Error.toString(SoapySDR.Error.CORRUPTION));
-    assertEqual("OVERFLOW", SoapySDR.Error.toString(SoapySDR.Error.OVERFLOW_ERROR));
-    assertEqual("NOT_SUPPORTED", SoapySDR.Error.toString(SoapySDR.Error.NOT_SUPPORTED));
-    assertEqual("TIME_ERROR", SoapySDR.Error.toString(SoapySDR.Error.TIME_ERROR));
-    assertEqual("UNDERFLOW", SoapySDR.Error.toString(SoapySDR.Error.UNDERFLOW_ERROR));
-    assertEqual("UNKNOWN", SoapySDR.Error.toString(0));
+    assertEqual("TIMEOUT", SoapySDR_ErrorCode.toString(SoapySDR_ErrorCode.Timeout));
+    assertEqual("STREAM_ERROR", SoapySDR_ErrorCode.toString(SoapySDR_ErrorCode.StreamError));
+    assertEqual("CORRUPTION", SoapySDR_ErrorCode.toString(SoapySDR_ErrorCode.Corruption));
+    assertEqual("OVERFLOW", SoapySDR_ErrorCode.toString(SoapySDR_ErrorCode.Overflow));
+    assertEqual("NOT_SUPPORTED", SoapySDR_ErrorCode.toString(SoapySDR_ErrorCode.NotSupported));
+    assertEqual("TIME_ERROR", SoapySDR_ErrorCode.toString(SoapySDR_ErrorCode.TimeError));
+    assertEqual("UNDERFLOW", SoapySDR_ErrorCode.toString(SoapySDR_ErrorCode.Underflow));
+    assertEqual("UNKNOWN", SoapySDR_ErrorCode.toString(0));

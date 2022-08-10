@@ -9,13 +9,9 @@ function test_suite=TestEnumerateDevices
     initTestSuite;
 
 function testEnumerateNoParams
-    SoapySDR;
-
     # Just make sure this runs, no idea what's actually there
-    SoapySDR.Device.enumerate()
+    SoapySDR_Device.enumerate();
 
 function testEnumerateWithParams
-    SoapySDR;
-
     # TODO: check output for null device
-    deviceStringArgs = SoapySDR.Device.enumerate("type=null")
+    deviceStringArgs = SoapySDR_Device.enumerate("type=null");
