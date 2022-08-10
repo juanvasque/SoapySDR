@@ -157,8 +157,7 @@ MEX_DEFINE(Error_errToStr) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *
 // <SoapySDR/Logger.hpp>
 //////////////////////////////////////////////////////
 
-// TODO: how does memory management work with this?
-static const mxArray *mxLoggerFcn = nullptr;
+static mxArray *mxLoggerFcn = nullptr;
 
 static void SoapyLogHandler(const SoapySDRLogLevel logLevel, const char *message)
 {
@@ -173,7 +172,7 @@ static void SoapyLogHandler(const SoapySDRLogLevel logLevel, const char *message
             mxArray *lhs{nullptr};
             mxArray *rhs[3]
             {
-                const_cast<mxArray *>(mxLoggerFcn),
+                mxLoggerFcn,
                 MxArray::from(logLevel),
                 MxArray::from(message),
             };
@@ -181,8 +180,8 @@ static void SoapyLogHandler(const SoapySDRLogLevel logLevel, const char *message
             mexCallMATLAB(0, &lhs, ARRAY_SIZE(rhs), rhs, "feval");
 
             // Clean up
+            mxDestroyArray(rhs[2]);
             mxDestroyArray(rhs[1]);
-            mxDestroyArray(rhs[0]);
         },
         "SoapyLogHandler");
 }
@@ -225,7 +224,10 @@ MEX_DEFINE(Logger_registerLogHandler) (int nlhs, mxArray *plhs[], int nrhs, cons
             if(!mxIsClass(prhs[0], "function_handle"))
                 mexErrMsgIdAndTxt("Logger_registerLogHandler", "Expected a function handle.");
 
-            mxLoggerFcn = prhs[0];
+            // Note: as it is now, the last one set will leak, but that's better
+            // than crashing.
+            mxLoggerFcn = mxDuplicateArray(prhs[0]);
+            mexMakeArrayPersistent(mxLoggerFcn);
 
             SoapySDR::registerLogHandler(&SoapyLogHandler);
         },
@@ -237,6 +239,7 @@ MEX_DEFINE(Logger_clearLogHandler) (int nlhs, mxArray *plhs[], int nrhs, const m
     safeCall(
         [&]()
         {
+            mxLoggerFcn = nullptr;
             SoapySDR::registerLogHandler(nullptr);
         },
         "Logger_clearLogHandler");

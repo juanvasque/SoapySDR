@@ -21,6 +21,7 @@ set(test_names
     TestConstants
     TestEnumerateDevices
     TestErrorCodes
+    TestLogger
     TestTimeConversion)
 
 add_subdirectory(matlab)
