@@ -50,9 +50,43 @@ add_custom_target(SoapySDR_MEX_Octave ALL
 # Testing
 ########################################################################
 
+execute_process(
+    COMMAND ${OCTAVE_EXECUTABLE} --eval "moxunit_set_path()"
+    RESULT_VARIABLE OCTAVE_FOUND_MOXUNIT
+    OUTPUT_QUIET
+    ERROR_QUIET
+    )
+if(OCTAVE_FOUND_MOXUNIT EQUAL 0)
+    message(STATUS "Checking for MOxUnit with Octave - found")
+    set(OCTAVE_FOUND_MOXUNIT TRUE)
+else()
+    message(STATUS "Checking for MOxUnit with Octave - failed")
+    set(OCTAVE_FOUND_MOXUNIT FALSE)
+endif()
+
+include(FeatureSummary)
+include(CMakeDependentOption)
+cmake_dependent_option(ENABLE_OCTAVE_TESTING "Enable Octave unit tests" ON "ENABLE_OCTAVE;ENABLE_TESTS;OCTAVE_FOUND_MOXUNIT" OFF)
+add_feature_info("Octave tests" ENABLE_OCTAVE_TESTING "Octave unit tests")
+if(NOT ENABLE_OCTAVE_TESTING)
+    return()
+endif()
+
 # .m files need to be in the same directory as the corresponding MEX
 # file, so copy them and execute the tests here.
 foreach(src ${m_files})
     # TODO: copy to target output directory
     file(COPY ${src} DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+endforeach()
+
+foreach(test ${test_names})
+    set(test_path ${CMAKE_CURRENT_SOURCE_DIR}/../common/tests/${test}.m)
+
+    add_test(
+        NAME Octave_${test}
+        COMMAND ${OCTAVE_EXECUTABLE} --eval "moxunit_set_path(); moxunit_runtests(filename='${test_path}')"
+        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+
+    set_tests_properties(Octave_${test} PROPERTIES
+        FAIL_REGULAR_EXPRESSION "FAILED")
 endforeach()

@@ -17,5 +17,8 @@ set(m_files
     ${CMAKE_CURRENT_SOURCE_DIR}/common/m/SoapySDR_timeNsToTicks.m
     ${CMAKE_CURRENT_SOURCE_DIR}/common/m/SoapySDR_TxStream.m)
 
+set(test_names
+    TestTimeConversion)
+
 add_subdirectory(matlab)
 add_subdirectory(octave)

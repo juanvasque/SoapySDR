@@ -9,29 +9,27 @@ function test_suite=TestTimeConversion
     initTestSuite;
 
 function testLoopbackTimeToTicks
-    SoapySDR;
-    rates = [1e9, 52e6, 61.44e6, 100e6/3]
+    rates = [1e9, 52e6, 61.44e6, 100e6/3];
     for i = 1:100
-        timeNs = int64(rand() * intmax("int64"))
+        timeNs = int64(rand() * intmax("int64"));
         for rate = rates
-            ticks = SoapySDR.timeNsToTicks(timeNs, rate)
-            timeNsOut = SoapySDR.ticksToTimeNs(ticks, rate)
+            ticks = SoapySDR_timeNsToTicks(timeNs, rate);
+            timeNsOut = SoapySDR_ticksToTimeNs(ticks, rate);
             assertLessThan(double(abs(timeNs - timeNsOut)) / 1e9, rate) # We expect an error, timeNs specifies a subtick
 
-            ticks = SoapySDR.timeNsToTicks(-timeNs, rate)
-            timeNsOut = SoapySDR.ticksToTimeNs(ticks, rate)
+            ticks = SoapySDR_timeNsToTicks(-timeNs, rate);
+            timeNsOut = SoapySDR_ticksToTimeNs(ticks, rate);
             assertLessThan(double(abs(-timeNs - timeNsOut)) / 1e9, rate) # We expect an error, timeNs specifies a subtick
         endfor
     endfor
 
 function testLoopbackTicksToTime
-    SoapySDR;
-    rates = [1e9, 52e6, 61.44e6, 100e6/3]
+    rates = [1e9, 52e6, 61.44e6, 100e6/3];
     for i = 1:100
-        ticks = int64(rand() * intmax("int32"))
+        ticks = int64(rand() * intmax("int32"));
         for rate = rates
-            timeNs = SoapySDR.ticksToTimeNs(ticks, rate)
-            ticksOut = SoapySDR.timeNsToTicks(timeNs, rate)
+            timeNs = SoapySDR_ticksToTimeNs(ticks, rate);
+            ticksOut = SoapySDR_timeNsToTicks(timeNs, rate);
             assertEqual(ticks, ticksOut)
         endfor
     endfor
