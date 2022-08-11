@@ -184,5 +184,10 @@ mark_as_advanced (
 )
 
 if(OCTAVE_INCLUDE_DIRS AND OCTAVE_LIBRARIES AND OCTAVE_CONFIG_EXECUTABLE AND OCTAVE_MKOCTFILE_EXECUTABLE)
+    message(STATUS " * include: ${OCTAVE_INCLUDE_DIRS}")
+    message(STATUS " * libraries: ${OCTAVE_LIBRARIES}")
+    message(STATUS " * mkoctfile: ${OCTAVE_MKOCTFILE_EXECUTABLE}")
+    message(STATUS " * octave-config: ${OCTAVE_CONFIG_EXECUTABLE}")
+    message(STATUS "")
     set(OCTAVE_FOUND TRUE)
 endif()
