@@ -259,22 +259,22 @@ classdef SoapySDR_Device < handle
 
         function setFrequency(this, direction, channel, frequency, args)
         %SETFREQUENCY Set the overall frequency for the given channel.
-            args_ = ""
+            args_ = "";
             if nargin > 4
-                args_ = args
+                args_ = args;
             end
 
             SoapySDR_MEX("Device_setFrequency", this.__internal, direction, channel, frequency, args_);
         end
 
-        function setFrequencyComponent(this, direction, channel, frequency, name, args)
+        function setFrequencyComponent(this, direction, channel, name, frequency, args)
         %SETFREQUENCYCOMPONENT Set a frequency component's value for the given channel.
-            args_ = ""
-            if nargin > 4
-                args_ = args
+            args_ = "";
+            if nargin > 5
+                args_ = args;
             end
 
-            SoapySDR_MEX("Device_setFrequencyComponent", this.__internal, direction, channel, frequency, name, args_);
+            SoapySDR_MEX("Device_setFrequencyComponent", this.__internal, direction, channel, name, frequency, args_);
         end
 
         function frequency = getFrequency(this, direction, channel)
@@ -287,14 +287,24 @@ classdef SoapySDR_Device < handle
             frequency = SoapySDR_MEX("Device_getFrequencyComponent", this.__internal, direction, channel, name);
         end
 
-        function frequencyRange = getFrequencyRange(this, direction, channel)
-        %GETFREQUENCY Get the overall frequency rangefor the given channel.
-            frequency = SoapySDR_MEX("Device_getFrequencyRange", this.__internal, direction, channel);
+        function components = listFrequencies(this, direction, channel)
+        %LISTFREQUENCIES List the frequency components for the given channel.
+            components = SoapySDR_MEX("Device_listFrequencies", this.__internal, direction, channel);
         end
 
-        function frequencyRange = getFrequencyComponentRange(this, direction, channel, name)
-        %GETFREQUENCYCOMPONENT Get the range of a frequency component for the given channel.
-            frequencyRange = SoapySDR_MEX("Device_getFrequencyComponentRange", this.__internal, direction, channel, name);
+        function frequencyRange = getFrequencyRange(this, direction, channel)
+        %GETFREQUENCYRANGE Get the overall frequency rangefor the given channel.
+            frequencyRange = SoapySDR_MEX("Device_getFrequencyRange", this.__internal, direction, channel);
+        end
+
+        function frequencyComponentRange = getFrequencyComponentRange(this, direction, channel, name)
+        %GETFREQUENCYCOMPONENTRANGE Get the range of a frequency component for the given channel.
+            frequencyComponentRange = SoapySDR_MEX("Device_getFrequencyComponentRange", this.__internal, direction, channel, name);
+        end
+
+        function frequencyArgsInfo = getFrequencyArgsInfo(this, direction, channel)
+        %GETFREQUENCYARGSINFO Get the overall frequency rangefor the given channel.
+            frequencyArgsInfo = SoapySDR_MEX("Device_getFrequencyArgsInfo", this.__internal, direction, channel);
         end
 
         %
@@ -405,9 +415,9 @@ classdef SoapySDR_Device < handle
 
         function value = hasHardwareTime(this, what)
         %HASHARDWARETIME Does this device have a hardware clock?
-            what_ = ""
+            what_ = "";
             if nargin > 1
-                what_ = what
+                what_ = what;
             end
 
             value = SoapySDR_MEX("Device_hasHardwareTime", this.__internal, what_);
@@ -415,9 +425,9 @@ classdef SoapySDR_Device < handle
 
         function value = getHardwareTime(this, what)
         %GETHARDWARETIME Read the time from the device's hardware clock.
-            what_ = ""
+            what_ = "";
             if nargin > 1
-                what_ = what
+                what_ = what;
             end
 
             value = SoapySDR_MEX("Device_getHardwareTime", this.__internal, what_);
@@ -425,9 +435,9 @@ classdef SoapySDR_Device < handle
 
         function setHardwareTime(this, timeNs, what)
         %SETHARDWARETIME Write the time to the device's hardware clock.
-            what_ = ""
+            what_ = "";
             if nargin > 2
-                what_ = what
+                what_ = what;
             end
 
             SoapySDR_MEX("Device_setHardwareTime", this.__internal, timeNs, what_);
@@ -439,7 +449,7 @@ classdef SoapySDR_Device < handle
 
         function sensors = listSensors(this)
         %LISTSENSORS List the available global readback sensors.
-            sensors = SoapySDR_MEX("Device_listSensor", this.__internal);
+            sensors = SoapySDR_MEX("Device_listSensors", this.__internal);
         end
 
         function sensorInfo = getSensorInfo(this, sensor)
@@ -620,12 +630,12 @@ classdef SoapySDR_Device < handle
 
         function value = readUART(this, which, timeoutUs)
         %READUART Read from the given UART device.
-            timeoutUs_ = 100000
+            timeoutUs_ = 100000;
             if nargin > 2
-                timeoutUs_ = timeoutUs
+                timeoutUs_ = timeoutUs;
             end
 
-            value = SoapySDR_MEX("Device_readUART", this.__internal, which, timeoutUs_)
+            value = SoapySDR_MEX("Device_readUART", this.__internal, which, timeoutUs_);
         end
     end
 

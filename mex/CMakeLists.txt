@@ -19,6 +19,7 @@ set(m_files
 
 set(test_names
     TestConstants
+    TestDeviceAPI
     TestEnumerateDevices
     TestErrorCodes
     TestLogger

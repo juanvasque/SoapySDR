@@ -1496,6 +1496,23 @@ MEX_DEFINE(Device_getFrequencyComponent) (int nlhs, mxArray *plhs[], int nrhs, c
         "Device_getFrequencyComponent");
 }
 
+MEX_DEFINE(Device_listFrequencies) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    safeCall(
+        [&]()
+        {
+            InputArguments input(nrhs, prhs, 3);
+            OutputArguments output(nlhs, plhs, 1);
+
+            output.set(
+                0,
+                input.get<DeviceContainer>(0).ptr->listFrequencies(
+                    input.get<int>(1),
+                    input.get<size_t>(2)));
+        },
+        "Device_listFrequencies");
+}
+
 MEX_DEFINE(Device_getFrequencyRange) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
     safeCall(
@@ -2283,6 +2300,21 @@ MEX_DEFINE(Device_writeGPIODirMasked) (int nlhs, mxArray *plhs[], int nrhs, cons
                 input.get<unsigned>(3));
         },
         "Device_writeGPIODirMasked");
+}
+
+MEX_DEFINE(Device_readGPIODir) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    safeCall(
+        [&]()
+        {
+            InputArguments input(nrhs, prhs, 2);
+            OutputArguments output(nlhs, plhs, 1);
+
+            output.set(
+                0,
+                input.get<DeviceContainer>(0).ptr->readGPIODir(input.get<std::string>(1)));
+        },
+        "Device_readGPIO");
 }
 
 //
