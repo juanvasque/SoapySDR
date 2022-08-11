@@ -58,7 +58,7 @@ find_program( OCTAVE_CONFIG_EXECUTABLE
               NAMES octave-config
             )
 
-find_program( MKOCTFILE_EXECUTABLE
+find_program( OCTAVE_MKOCTFILE_EXECUTABLE
               NAMES mkoctfile
             )
 
