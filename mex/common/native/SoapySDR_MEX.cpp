@@ -20,6 +20,7 @@ using namespace mexplus;
 
 // TODO: consistency between mexErrMsgTxt and mexErrMsgIdAndTxt
 // TODO: policy on when to bail on streaming error codes or give ability for user to bail
+// TODO: explicitly fill out mandatory, do optional arguments
 
 //////////////////////////////////////////////////////
 // Utility
@@ -1449,7 +1450,7 @@ MEX_DEFINE(Device_setFrequencyComponent) (int nlhs, mxArray *plhs[], int nrhs, c
     safeCall(
         [&]()
         {
-            InputArguments input(nrhs, prhs, 5);
+            InputArguments input(nrhs, prhs, 6);
 
             input.get<DeviceContainer>(0).ptr->setFrequency(
                 input.get<int>(1),

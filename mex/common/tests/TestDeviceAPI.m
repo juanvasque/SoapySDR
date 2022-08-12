@@ -83,15 +83,15 @@ function fcn = testDirection(device, direction)
     device.getGainElementRange(direction, 0, "");
 
     #
-    # Frequency API (TODO: why aren't component functions working)
+    # Frequency API
     #
 
     device.setFrequency(direction, 0, 0.0);
     device.setFrequency(direction, 0, 0.0, "key0=val0,key1=val1");
     assertEqual(0.0, device.getFrequency(direction, 0));
 
-    #device.setFrequencyComponent(direction, 0, "", 0.0);
-    #device.setFrequencyComponent(direction, 0, "", 0.0, "key0=val0,key1=val1");
+    device.setFrequencyComponent(direction, 0, "", 0.0);
+    device.setFrequencyComponent(direction, 0, "", 0.0, "key0=val0,key1=val1");
     assertEqual(0.0, device.getFrequencyComponent(direction, 0, ""));
 
     assertEqual(0, length(device.listFrequencies(direction, 0)));
@@ -128,13 +128,13 @@ function fcn = testDirection(device, direction)
     # Settings API
     #
 
-    assertEqual(0, length(device.getSettingInfo(direction, 0)));
-    device.getSettingInfo(direction, 0, "");
-    assertEqual(0, length(device.readSetting(direction, 0, "")));
-    device.writeSetting(direction, 0, "", "");
-    device.writeSetting(direction, 0, "", 0);
-    device.writeSetting(direction, 0, "", 0.0);
-    device.writeSetting(direction, 0, "", false);
+    assertEqual(0, length(device.getChannelSettingInfo(direction, 0)));
+    device.getChannelSettingInfo(direction, 0, "");
+    assertEqual(0, length(device.readChannelSetting(direction, 0, "")));
+    device.writeChannelSetting(direction, 0, "", "");
+    device.writeChannelSetting(direction, 0, "", 0);
+    device.writeChannelSetting(direction, 0, "", 0.0);
+    device.writeChannelSetting(direction, 0, "", false);
 
 function testDeviceAPI
     device = SoapySDR_Device("driver=null,type=null");
@@ -199,16 +199,16 @@ function testDeviceAPI
     assertEqual(0, length(device.readRegisters("", 0, 0)));
 
     #
-    # Settings API (TODO: why doesn't writeSetting work?)
+    # Settings API
     #
 
     assertEqual(0, length(device.getSettingInfo()));
     device.getSettingInfo("");
     assertEqual(0, length(device.readSetting("")));
-    #device.writeSetting("", "");
-    #device.writeSetting("", 0);
-    #device.writeSetting("", 0.0);
-    #device.writeSetting("", false);
+    device.writeSetting("", "");
+    device.writeSetting("", 0);
+    device.writeSetting("", 0.0);
+    device.writeSetting("", false);
 
     #
     # GPIO API
