@@ -74,10 +74,9 @@ classdef SoapySDR_Device < handle
             streamFormats = SoapySDR_MEX("Device_getStreamFormats", this.__internal, direction, channel);
         end
 
-        function output = getNativeStreamFormat(this, direction, channel)
+        function [format, fullScale] = getNativeStreamFormat(this, direction, channel)
         %GETSTREAMFORMATS Get the supported stream formats for the given channel.
-            % TODO: figure out why multiple outputs aren't working
-            output = SoapySDR_MEX("Device_getNativeStreamFormat", this.__internal, direction, channel);
+            [format, fullScale] = SoapySDR_MEX("Device_getNativeStreamFormat", this.__internal, direction, channel);
         end
 
         function streamArgsInfo = getStreamArgsInfo(this, direction, channel)

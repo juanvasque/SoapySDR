@@ -8,7 +8,7 @@ function test_suite=TestDeviceAPI
     end
     initTestSuite;
 
-function fcn = testDirection(device, direction);
+function fcn = testDirection(device, direction)
     #
     # Channels API
     #
@@ -23,9 +23,9 @@ function fcn = testDirection(device, direction);
     #
 
     assertEqual(0, length(device.getStreamFormats(direction, 0)));
-    #[format, fullScale] = device.getNativeStreamFormat(direction, 0);
-    #assertEqual(SoapySDR_StreamFormat.CS16, format);
-    #assertEqual(fullScale, bitshift(1, 15));
+    [format, fullScale] = device.getNativeStreamFormat(direction, 0);
+    assertEqual(SoapySDR_StreamFormat.CS16, format);
+    assertEqual(fullScale, bitshift(1, 15));
     assertEqual(0, length(device.getStreamArgsInfo(direction, 0)));
 
     #
