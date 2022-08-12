@@ -125,16 +125,16 @@ function fcn = testDirection(device, direction);
     assertEqual(0, length(device.readSensor(direction, 0, "")));
 
     #
-    # Settings API (TODO: why doesn't writeSetting work?)
+    # Settings API
     #
 
     assertEqual(0, length(device.getSettingInfo(direction, 0)));
     device.getSettingInfo(direction, 0, "");
     assertEqual(0, length(device.readSetting(direction, 0, "")));
-    #device.writeSetting(direction, 0, "", "");
-    #device.writeSetting(direction, 0, "", 0);
-    #device.writeSetting(direction, 0, "", 0.0);
-    #device.writeSetting(direction, 0, "", false);
+    device.writeSetting(direction, 0, "", "");
+    device.writeSetting(direction, 0, "", 0);
+    device.writeSetting(direction, 0, "", 0.0);
+    device.writeSetting(direction, 0, "", false);
 
 function testDeviceAPI
     device = SoapySDR_Device("driver=null,type=null");

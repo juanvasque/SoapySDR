@@ -644,18 +644,22 @@ classdef SoapySDR_Device < handle
     %
 
     methods (Private)
-        function str = _toString(value)
+        function str = _toString(this, value)
             if isbool(value)
+                printf("isbool\n");
                 if value
-                    str = "true"
+                    str = "true";
                 else
-                    str = "false"
+                    str = "false";
                 end
             elseif isnumeric(value)
-                str = num2str(value)
+                printf("isnumeric\n");
+                str = num2str(value);
+            elseif ischar(value)
+                printf("ischar\n");
+                str = value;
             else
-                % If not a string, good luck.
-                str = value
+                error(sprintf("Invalid input type: %s", class(value)));
             end
         end
     end
