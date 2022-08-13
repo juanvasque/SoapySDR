@@ -1,5 +1,5 @@
-# Copyright (c) 2022 Nicholas Corgan;
-# SPDX-License-Identifier: BSL-1.0;
+# Copyright (c) 2022 Nicholas Corgan
+# SPDX-License-Identifier: BSL-1.0
 
 function test_suite=TestLogger
     try % assignment of 'localfunctions' is necessary in Matlab >= 2016;
