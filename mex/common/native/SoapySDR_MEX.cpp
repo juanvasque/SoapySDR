@@ -14,6 +14,7 @@
 
 #include <algorithm>
 #include <iterator>
+#include <stdexcept>
 #include <vector>
 
 using namespace mexplus;
@@ -102,6 +103,7 @@ mxArray *MxArray::from(const SoapySDR::Kwargs &args)
     return MxArray::from(output);
 }
 
+// TODO: why doesn't this do anything in the Device constructor?
 template <typename Fcn>
 static void safeCall(const Fcn &fcn, const std::string &context)
 {
@@ -378,10 +380,13 @@ mxArray *MxArray::from(const DeviceContainer &device)
     const char *fields[] = {"driverKey", "hardwareKey", "hardwareInfo", "__internal"};
     MxArray struct_array(MxArray::Struct(ARRAY_SIZE(fields), fields));
 
-    struct_array.set("driverKey", device.ptr->getDriverKey());
-    struct_array.set("hardwareKey", device.ptr->getHardwareKey());
-    struct_array.set("hardwareInfo", device.ptr->getHardwareInfo());
-    struct_array.set("__internal", reinterpret_cast<uintptr_t>(device.ptr));
+    if(device.ptr)
+    {
+        struct_array.set("driverKey", device.ptr->getDriverKey());
+        struct_array.set("hardwareKey", device.ptr->getHardwareKey());
+        struct_array.set("hardwareInfo", device.ptr->getHardwareInfo());
+        struct_array.set("__internal", reinterpret_cast<uintptr_t>(device.ptr));
+    }
 
     return struct_array.release();
 }
@@ -550,6 +555,19 @@ MEX_DEFINE(Device_make) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prh
         {
             InputArguments input(nrhs, prhs, 1);
             OutputArguments output(nlhs, plhs, 1);
+
+            // Make sure the ABI matches before doing anything.
+            static const std::string buildTimeABI(SOAPY_SDR_ABI_VERSION);
+            if(SoapySDR::getABIVersion() != buildTimeABI)
+            {
+                std::string errorMsg("Failed ABI check. SoapySDR ");
+                errorMsg += SoapySDR::getABIVersion();
+                errorMsg += ", MEX bindings ";
+                errorMsg += buildTimeABI;
+                errorMsg += ". Rebuild the module.";
+
+                throw std::runtime_error(errorMsg);
+            }
 
             output.set(0, DeviceContainer(SoapySDR::Device::make(input.get<std::string>(0))));
         },
