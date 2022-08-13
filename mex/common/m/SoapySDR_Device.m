@@ -21,8 +21,11 @@ classdef SoapySDR_Device < handle
         %MAKE Instantiate a new device.
             args_ = "";
             if nargin > 0
-                assert(ischar(args));
-                args_ = args;
+                if ischar(args)
+                    args_ = args;
+                else
+                    error("Args must be a string");
+                end
             end
 
             this.__internal = SoapySDR_MEX("Device_make", args_);
