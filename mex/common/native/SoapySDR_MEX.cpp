@@ -22,6 +22,7 @@ using namespace mexplus;
 // TODO: consistency between mexErrMsgTxt and mexErrMsgIdAndTxt
 // TODO: policy on when to bail on streaming error codes or give ability for user to bail
 // TODO: explicitly fill out mandatory, do optional arguments
+// TODO: throw inside safeCall, let it deal with message output
 
 //////////////////////////////////////////////////////
 // Utility
@@ -489,14 +490,6 @@ void MxArray::to(const mxArray *array, StreamContainer *stream)
         return struct_array.release(); \
     }
 
-/*
-MXARRAY_FROM_RXSTREAMRESULT(int8_T)
-MXARRAY_FROM_RXSTREAMRESULT(int16_T)
-MXARRAY_FROM_RXSTREAMRESULT(int32_T)
-MXARRAY_FROM_RXSTREAMRESULT(uint8_T)
-MXARRAY_FROM_RXSTREAMRESULT(uint16_T)
-MXARRAY_FROM_RXSTREAMRESULT(uint32_T)
-*/
 MXARRAY_FROM_RXSTREAMRESULT(float)
 MXARRAY_FROM_RXSTREAMRESULT(double)
 
@@ -736,7 +729,11 @@ MEX_DEFINE(Device_setupStream) (int nlhs, mxArray *plhs[], int nrhs, const mxArr
             InputArguments input(nrhs, prhs, 5);
             OutputArguments output(nlhs, plhs, 1);
 
-            auto deviceContainer = input.get<DeviceContainer>(0);
+            const auto deviceContainer = input.get<DeviceContainer>(0);
+            const auto format = input.get<std::string>(4);
+
+            if((format != SOAPY_SDR_CF32) and (format != SOAPY_SDR_CF64))
+                throw std::invalid_argument("Matlab/Octave bindings only support formats CF32 and CF64.");
 
             StreamContainer streamContainer
             {
@@ -745,7 +742,7 @@ MEX_DEFINE(Device_setupStream) (int nlhs, mxArray *plhs[], int nrhs, const mxArr
                 input.get<int>(1),
                 input.get<std::string>(2),
                 input.get<std::vector<size_t>>(3),
-                input.get<std::string>(4)
+                format
             };
             streamContainer.stream = streamContainer.device->setupStream(
                 streamContainer.direction,
