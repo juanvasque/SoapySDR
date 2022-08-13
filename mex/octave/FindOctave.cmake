@@ -27,6 +27,7 @@
 
 #=============================================================================
 # Copyright 2013, Julien Schueller
+#           2022, Nicholas Corgan
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -63,6 +64,10 @@ find_program( OCTAVE_MKOCTFILE_EXECUTABLE
             )
 
 if ( OCTAVE_CONFIG_EXECUTABLE )
+
+  execute_process ( COMMAND ${OCTAVE_CONFIG_EXECUTABLE} -p OCTAVE_HOME
+                    OUTPUT_VARIABLE OCTAVE_INSTALL_PREFIX
+                    OUTPUT_STRIP_TRAILING_WHITESPACE )
 
   execute_process ( COMMAND ${OCTAVE_CONFIG_EXECUTABLE} -p BINDIR
                     OUTPUT_VARIABLE OCTAVE_BIN_PATHS
@@ -192,13 +197,18 @@ mark_as_advanced (
 )
 
 if(OCTAVE_INCLUDE_DIRS AND OCTAVE_LIBRARIES AND OCTAVE_CONFIG_EXECUTABLE AND OCTAVE_MKOCTFILE_EXECUTABLE)
-    set(OCTAVE_OCT_SITE_DIR "${OCTAVE_OCT_SITE_DIR}" CACHE FILEPATH "Oct site dir")
-    set(OCTAVE_M_SITE_DIR "${OCTAVE_M_SITE_DIR}" CACHE FILEPATH "M site dir")
+    string(LENGTH ${OCTAVE_INSTALL_PREFIX} HOME_LEN)
+    math(EXPR HOME_LEN ${HOME_LEN}+1)
+
+    string(SUBSTRING ${OCTAVE_OCT_SITE_DIR} ${HOME_LEN}+2 500 OCTAVE_OCT_SITE_DIR)
+    string(SUBSTRING ${OCTAVE_M_SITE_DIR} ${HOME_LEN}+2 500 OCTAVE_M_SITE_DIR)
 
     message(STATUS " * include: ${OCTAVE_INCLUDE_DIRS}")
     message(STATUS " * libraries: ${OCTAVE_LIBRARIES}")
     message(STATUS " * mkoctfile: ${OCTAVE_MKOCTFILE_EXECUTABLE}")
     message(STATUS " * octave-config: ${OCTAVE_CONFIG_EXECUTABLE}")
+    message(STATUS " * MEX install dir: ${OCTAVE_OCT_SITE_DIR}")
+    message(STATUS " * .m install dir: ${OCTAVE_M_SITE_DIR}")
     message(STATUS "")
     set(OCTAVE_FOUND TRUE)
 else()
