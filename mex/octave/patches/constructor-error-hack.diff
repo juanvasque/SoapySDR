@@ -1,0 +1,29 @@
+diff --git a/MOxUnit/@MOxUnitFunctionHandleTestCase/run.m b/MOxUnit/@MOxUnitFunctionHandleTestCase/run.m
+index 9525f6f..a9eddc9 100644
+--- a/MOxUnit/@MOxUnitFunctionHandleTestCase/run.m
++++ b/MOxUnit/@MOxUnitFunctionHandleTestCase/run.m
+@@ -64,6 +64,24 @@ function report=run(obj,report)
+         test_outcome_args={e};
+     end
+ 
++    % An unfortunately necessary hack. Some combination of Octave's
++    % screwy classdef implementation and MOxUnit's try-catch
++    % statements results in any error in the constructor being
++    % suppressed. This results in the error being caught referring
++    % to the resulting unmake error, but this is unclear. So if this
++    % happens, just call the bad test so we can see the actual failure.
++    if ~passed
++        if strfind(e.identifier, "unmake") > 0
++            disp("");
++            disp("Encountered constructor error bug. Actual error below.");
++            if nargin(obj.function_handle) > 0
++                obj.function_handle(obj);
++            else
++                obj.function_handle();
++            end
++        end
++    end
++
+     test_outcome = test_outcome_constructor(obj, toc(start_tic), ...
+                             test_outcome_args{:});
+ 
