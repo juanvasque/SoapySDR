@@ -8,7 +8,7 @@ function test_suite=TestDeviceAPI
     end
     initTestSuite;
 
-function fcn = testDirection(device, direction)
+function fcn = __testDirection(device, direction)
     #
     # Channels API
     #
@@ -247,5 +247,5 @@ function testDeviceAPI
     # Direction-specific tests
     #
 
-    testDirection(device, SoapySDR_Direction.Tx);
-    testDirection(device, SoapySDR_Direction.Rx);
+    __testDirection(device, SoapySDR_Direction.Tx);
+    __testDirection(device, SoapySDR_Direction.Rx);
