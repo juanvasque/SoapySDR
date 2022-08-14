@@ -18,15 +18,17 @@ classdef SoapySDR_Device < handle
         %
 
         % TODO: accept options the Matlab way, deal with stupid function file stuff
-        function this = SoapySDR_Device(args)
+        function this = SoapySDR_Device(varargin)
         %MAKE Instantiate a new device.
             args_ = "";
-            if nargin > 0
-                if ischar(args)
-                    args_ = args;
+            if nargsin == 1
+                if ischar(varargin{1})
+                    args_ = varargin{1};
                 else
                     error("Args must be a string");
                 end
+            elseif nargsin > 1
+                args_ = SoapySDR_Device._makeArgsString(varargin{:});
             end
 
             this.__internal = SoapySDR_MEX("Device_make", args_);
@@ -525,8 +527,7 @@ classdef SoapySDR_Device < handle
 
         function writeSetting(this, key, value)
         %WRITESETTING Write a global setting's value.
-            % TODO: not working
-            SoapySDR_MEX("Device_writeSetting", this.__internal, key, this._toString(value));
+            SoapySDR_MEX("Device_writeSetting", this.__internal, key, SoapySDR_MEX("toString", value));
         end
 
         function value = readSetting(this, key)
@@ -546,8 +547,7 @@ classdef SoapySDR_Device < handle
 
         function writeChannelSetting(this, direction, channel, key, value)
         %WRITESETTING Write a global setting's value.
-            % TODO: not working
-            SoapySDR_MEX("Device_writeChannelSetting", this.__internal, direction, channel, key, this._toString(value));
+            SoapySDR_MEX("Device_writeChannelSetting", this.__internal, direction, channel, key, SoapySDR_MEX("toString", value));
         end
 
         function value = readChannelSetting(this, direction, channel, key)
@@ -646,20 +646,16 @@ classdef SoapySDR_Device < handle
     % Internal
     %
 
-    methods (Private)
-        function str = _toString(this, value)
-            if ischar(value)
-                str = value;
-            elseif isbool(value)
-                if value
-                    str = "true";
-                else
-                    str = "false";
+    methods (Static, Private)
+        function argsStr = _makeArgsString(varargin)
+            argsStr = "";
+
+            for i = 1:nargsin
+                if i > 1
+                    argsStr = sprintf("%s," argsStr);
                 end
-            elseif isnumeric(value)
-                str = num2str(value);
-            else
-                error(sprintf("Invalid input type: %s", class(value)));
+
+                argsStr = sprintf("%s%s=%s", argsStr, varargin{i:1}, SoapySDR_MEX("toString", varargin{i:2}));
             end
         end
     end

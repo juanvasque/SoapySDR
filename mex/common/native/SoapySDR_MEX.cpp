@@ -23,7 +23,7 @@ using namespace mexplus;
 // TODO: explicitly fill out mandatory, do optional arguments
 
 //////////////////////////////////////////////////////
-// Utility
+// Un-exposed utility
 //////////////////////////////////////////////////////
 
 #ifdef __GNUG__
@@ -179,6 +179,50 @@ static void safeCallWithErrorCode(const Fcn &fcn, const std::string &context)
 
         mexErrMsgTxt(errorMsg.c_str());
     }
+}
+
+//////////////////////////////////////////////////////
+// Exposed utility functions
+//////////////////////////////////////////////////////
+
+// Less annoying than dealing with function files vs. script files.
+MEX_DEFINE(toString) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    safeCall(
+        [&]()
+        {
+            InputArguments input(nrhs, prhs, 1);
+            OutputArguments output(nlhs, plhs, 1);
+
+            if(mxIsChar(prhs[0]))
+            {
+                output.set(0, input.get<std::string>(0));
+            }
+            else if(mxIsDouble(prhs[0]))
+            {
+                output.set(0, input.get<double>(0));
+            }
+            else if(mxIsInt8(prhs[0]) or mxIsInt16(prhs[0]) or mxIsInt32(prhs[0]) or mxIsInt64(prhs[0]))
+            {
+                output.set(0, input.get<int64_T>(0));
+            }
+            else if(mxIsUint8(prhs[0]) or mxIsUint16(prhs[0]) or mxIsUint32(prhs[0]) or mxIsUint64(prhs[0]))
+            {
+                output.set(0, input.get<uint64_T>(0));
+            }
+            else if(mxIsLogical(prhs[0]))
+            {
+                output.set(0, input.get<bool>(0));
+            }
+            else
+            {
+                std::string errorMsg("Unsupported type: ");
+                errorMsg += mxGetClassName(prhs[0]);
+
+                throw std::invalid_argument(errorMsg);
+            }
+        },
+        "toString");
 }
 
 //////////////////////////////////////////////////////

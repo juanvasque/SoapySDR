@@ -137,7 +137,10 @@ function fcn = __testDirection(device, direction)
     device.writeChannelSetting(direction, 0, "", false);
 
 function testDeviceAPI
+    # Make sure all methods work
+    device = SoapySDR_Device()
     device = SoapySDR_Device("driver=null,type=null");
+    device = SoapySDR_Device("driver", "null", "type", "null", "ignored1", 5, "ignored2", true, "ignored3", 5.0);
 
     #
     # Identification API
