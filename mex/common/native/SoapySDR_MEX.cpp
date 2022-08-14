@@ -77,7 +77,6 @@ inline mxArray *MxArray::from(const SoapySDR::ArgInfo::Type &type)
         ret = #x; \
         break;
 
-    // TODO: as string
     switch(type)
     {
     CASE(BOOL)
@@ -92,12 +91,6 @@ inline mxArray *MxArray::from(const SoapySDR::ArgInfo::Type &type)
 
     return MxArray::from(ret);
 #undef CASE
-}
-
-template <>
-inline mxArray *MxArray::from(const SoapySDRArgInfoType &type)
-{
-    return MxArray::from(int(type));
 }
 
 template <>
@@ -160,7 +153,13 @@ static void safeCallWithErrorCode(const Fcn &fcn, const std::string &context)
     {
         int errorCode = fcn();
         if(errorCode)
-            mexErrMsgIdAndTxt(context.c_str(), SoapySDR::errToStr(errorCode));
+        {
+            std::string errorMsg("SoapySDR returned error ");
+            errorMsg += SoapySDR::errToStr(errorCode);
+            errorMsg += ".";
+
+            mexErrMsgTxt(errorMsg.c_str());
+        }
     }
     catch(const std::exception &ex)
     {
