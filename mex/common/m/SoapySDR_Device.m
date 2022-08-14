@@ -97,12 +97,9 @@ classdef SoapySDR_Device < handle
             antenna = SoapySDR_MEX("Device_getAntenna", this.__internal, direction, channel);
         end
 
-        function stream = setupStream(this, direction, format, channels, args)
+        function stream = setupStream(this, direction, format, channels, varargin)
         %SETUPSTREAM Initialize a transmit/receive stream.
-            args_ = "";
-            if nargin >= 5
-                args_ = args;
-            end
+            args_ = SoapySDR_Device._parseArgs(varargin{:});
 
             if direction == SoapySDR_Direction.Tx
                 stream = SoapySDR_TxStream(SoapySDR_MEX("Device_setupStream", this.__internal, direction, format, channels, args_))
@@ -226,6 +223,22 @@ classdef SoapySDR_Device < handle
             SoapySDR_MEX("Device_setGainElement", this.__internal, direction, channel, name, gain);
         end
 
+        function setGainElements(this, direction, channel, varargin)
+        %SETGAINELEMENT Set gain element values for the given channel.
+            if nargin <= 2
+                error("setGainElements requires at least one element.");
+            end
+
+            p = inputParser;
+            p.KeepUnmatched = true;
+            parse(p, varargin{:});
+
+            fn = fieldnames(p.Unmatched);
+            for i = 1:length(fn)
+                this.setGainElement(direction, channel, fn{i}, p.Unmatched.(fn{i}));
+            end
+        end
+
         function gain = getGain(this, direction, channel)
         %GETGAIN Get the overall gain for the given channel.
             gain = SoapySDR_MEX("Device_getGain", this.__internal, direction, channel);
@@ -250,24 +263,34 @@ classdef SoapySDR_Device < handle
         % Frequency API
         %
 
-        function setFrequency(this, direction, channel, frequency, args)
+        function setFrequency(this, direction, channel, frequency, varargin)
         %SETFREQUENCY Set the overall frequency for the given channel.
-            args_ = "";
-            if nargin > 4
-                args_ = args;
-            end
+            args_ = SoapySDR_Device._parseArgs(varargin{:});
 
             SoapySDR_MEX("Device_setFrequency", this.__internal, direction, channel, frequency, args_);
         end
 
-        function setFrequencyComponent(this, direction, channel, name, frequency, args)
+        function setFrequencyComponent(this, direction, channel, name, frequency, varargin)
         %SETFREQUENCYCOMPONENT Set a frequency component's value for the given channel.
-            args_ = "";
-            if nargin > 5
-                args_ = args;
-            end
+            args_ = SoapySDR_Device._parseArgs(varargin{:});
 
             SoapySDR_MEX("Device_setFrequencyComponent", this.__internal, direction, channel, name, frequency, args_);
+        end
+
+        function setFrequencyComponents(this, direction, channel, varargin)
+        %WRITEGPIO Set frequency component values for the given channel. Note that arguments are not supported.
+            if nargin <= 2
+                error("setFrequencyComponents requires at least one component.");
+            end
+
+            p = inputParser;
+            p.KeepUnmatched = true;
+            parse(p, varargin{:});
+
+            fn = fieldnames(p.Unmatched);
+            for i = 1:length(fn)
+                this.setFrequencyComponent(direction, channel, fn{i}, p.Unmatched.(fn{i}));
+            end
         end
 
         function frequency = getFrequency(this, direction, channel)
@@ -521,7 +544,7 @@ classdef SoapySDR_Device < handle
         function writeSettings(this, varargin)
         %WRITESETTINGS Write global setting value(s).
             if nargin == 0
-                error("writeSettings requires at least one setting.")
+                error("writeSettings requires at least one setting.");
             end
 
             p = inputParser;
@@ -540,22 +563,38 @@ classdef SoapySDR_Device < handle
         end
 
         function settingInfo = getChannelSettingInfo(this, direction, channel)
-        %GETSETTINGINFO Get all global setting info.
+        %GETSETTINGINFO Get all setting info for a given channel.
             settingInfo = SoapySDR_MEX("Device_getChannelSettingInfo", this.__internal, direction, channel);
         end
 
         function settingInfo = getChannelSettingInfoWithKey(this, direction, channel, key)
-        %GETSETTINGINFOWITHKEY Get a global setting's info.
+        %GETSETTINGINFOWITHKEY Get a given channel setting's info.
             settingInfo = SoapySDR_MEX("Device_getChannelSettingInfoWithKey", this.__internal, direction, channel, key);
         end
 
         function writeChannelSetting(this, direction, channel, key, value)
-        %WRITESETTING Write a global setting's value.
+        %WRITESETTING Write a given channel's setting's value.
             SoapySDR_MEX("Device_writeChannelSetting", this.__internal, direction, channel, key, SoapySDR_MEX("toString", value));
         end
 
+        function writeChannelSettings(this, direction, channel, varargin)
+        %WRITECHANNELSETTINGS Write a given channel's setting value(s).
+            if nargin <= 2
+                error("writeChannelSettings requires at least one setting.");
+            end
+
+            p = inputParser;
+            p.KeepUnmatched = true;
+            parse(p, varargin{:});
+
+            fn = fieldnames(p.Unmatched);
+            for i = 1:length(fn)
+                this.writeChannelSetting(direction, channel, fn{i}, p.Unmatched.(fn{i}));
+            end
+        end
+
         function value = readChannelSetting(this, direction, channel, key)
-        %READSETTING Read a global setting.
+        %READSETTING Read a given channel's setting.
             value = SoapySDR_MEX("Device_readChannelSetting", this.__internal, direction, channel, key);
         end
 
@@ -578,6 +617,22 @@ classdef SoapySDR_Device < handle
             SoapySDR_MEX("Device_writeGPIOMasked", this.__internal, bank, value, mask);
         end
 
+        function writeGPIOs(this, varargin)
+        %WRITEGPIO Write values to GPIOs.
+            if nargin == 0
+                error("writeGPIOs requires at least one GPIO bank.");
+            end
+
+            p = inputParser;
+            p.KeepUnmatched = true;
+            parse(p, varargin{:});
+
+            fn = fieldnames(p.Unmatched);
+            for i = 1:length(fn)
+                this.writeGPIO(fn{i}, p.Unmatched.(fn{i}));
+            end
+        end
+
         function value = readGPIO(this, bank)
         %READGPIO Read a value from GPIO.
             value = SoapySDR_MEX("Device_readGPIO", this.__internal, bank);
@@ -586,6 +641,22 @@ classdef SoapySDR_Device < handle
         function writeGPIODir(this, bank, dir)
         %WRITEGPIODIR Write the TX/RX direction to GPIO.
             SoapySDR_MEX("Device_writeGPIODir", this.__internal, bank, dir);
+        end
+
+        function writeGPIODirs(this, varargin)
+        %WRITEGPIO Write TX/RX directions to GPIOs.
+            if nargin == 0
+                error("writeGPIODirs requires at least one GPIO bank.");
+            end
+
+            p = inputParser;
+            p.KeepUnmatched = true;
+            parse(p, varargin{:});
+
+            fn = fieldnames(p.Unmatched);
+            for i = 1:length(fn)
+                this.writeGPIODir(fn{i}, p.Unmatched.(fn{i}));
+            end
         end
 
         function writeGPIODirMasked(this, bank, dir, mask)

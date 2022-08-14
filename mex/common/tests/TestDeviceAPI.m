@@ -79,6 +79,11 @@ function fcn = __testDirection(device, direction)
     device.setGain(direction, 0, 0.0);
     device.setGainElement(direction, 0, "", 0.0);
 
+    device.setGainElements(direction, 0, ...
+        "0", 0.0, ...
+        "1", 1.0, ...
+        "2", 2.0);
+
     device.getGainRange(direction, 0);
     device.getGainElementRange(direction, 0, "");
 
@@ -88,11 +93,18 @@ function fcn = __testDirection(device, direction)
 
     device.setFrequency(direction, 0, 0.0);
     device.setFrequency(direction, 0, 0.0, "key0=val0,key1=val1");
+    device.setFrequency(direction, 0, 0.0, "key0", "val0", "key1", "val1");
     assertEqual(0.0, device.getFrequency(direction, 0));
 
     device.setFrequencyComponent(direction, 0, "", 0.0);
     device.setFrequencyComponent(direction, 0, "", 0.0, "key0=val0,key1=val1");
+    device.setFrequencyComponent(direction, 0, "", 0.0, "key0", "val0", "key1", "val1");
     assertEqual(0.0, device.getFrequencyComponent(direction, 0, ""));
+
+    device.setFrequencyComponents(direction, 0, ...
+        "0", 0.0, ...
+        "1", 1.0, ...
+        "2", 2.0);
 
     assertEqual(0, length(device.listFrequencies(direction, 0)));
 
@@ -135,6 +147,12 @@ function fcn = __testDirection(device, direction)
     device.writeChannelSetting(direction, 0, "", 0);
     device.writeChannelSetting(direction, 0, "", 0.0);
     device.writeChannelSetting(direction, 0, "", false);
+
+    device.writeChannelSettings(direction, 0, ...
+        "", "", ...
+        "", 0, ...
+        "", 0.0, ...
+        "", false);
 
 function testDeviceAPI
     # Make sure all methods work
@@ -230,11 +248,22 @@ function testDeviceAPI
 
     device.listGPIOBanks();
     device.writeGPIO("", 0);
-    device.writeGPIO("", 0, 0);
+    device.writeGPIOMasked("", 0, 0);
     assertEqual(uint32(0), device.readGPIO(""));
+
+    device.writeGPIOs( ...
+        "0", 0, ...
+        "1", 1, ...
+        "2", 2);
+
     device.writeGPIODir("", 0);
-    device.writeGPIODir("", 0, 0);
+    device.writeGPIODirMasked("", 0, 0);
     assertEqual(uint32(0), device.readGPIODir(""));
+
+    device.writeGPIODirs( ...
+        "0", 0, ...
+        "1", 1, ...
+        "2", 2);
 
     #
     # I2C API
