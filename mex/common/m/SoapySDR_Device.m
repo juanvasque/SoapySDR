@@ -17,21 +17,9 @@ classdef SoapySDR_Device < handle
         % Construction/destruction
         %
 
-        % TODO: accept options the Matlab way, deal with stupid function file stuff
         function this = SoapySDR_Device(varargin)
         %MAKE Instantiate a new device.
-            args_ = "";
-            if nargin == 1
-                if ischar(varargin{1})
-                    args_ = varargin{1};
-                else
-                    error("Args must be a string");
-                end
-            elseif nargin > 1
-                args_ = SoapySDR_Device._makeArgsString(varargin{:});
-            end
-
-            this.__internal = SoapySDR_MEX("Device_make", args_);
+            this.__internal = SoapySDR_MEX("Device_make", SoapySDR_Device._parseArgs(varargin{:}));
             this.driverKey = this.__internal.driverKey;
             this.hardwareKey = this.__internal.hardwareKey;
             this.hardwareInfo = this.__internal.hardwareInfo;
@@ -663,6 +651,19 @@ classdef SoapySDR_Device < handle
                 argsStr = sprintf("%s%s=%s", argsStr, fn{i}, SoapySDR_MEX("toString", p.Unmatched.(fn{i})));
             end
         end
+
+        function argsStr = _parseArgs(varargin)
+            argsStr = "";
+            if nargin == 1
+                if ischar(varargin{1})
+                    argsStr = varargin{1};
+                else
+                    error("If passing args in a single parameter, must be a string");
+                end
+            elseif nargin > 1
+                argsStr = SoapySDR_Device._makeArgsString(varargin{:});
+            end
+        end
     end
 
     %
@@ -671,18 +672,7 @@ classdef SoapySDR_Device < handle
 
     methods (Static)
         function devices = enumerate(varargin)
-            args_ = "";
-            if nargin == 1
-                if ischar(varargin{1})
-                    args_ = varargin{1};
-                else
-                    error("If passing args in a single parameter, must be a string");
-                end
-            elseif nargin > 1
-                args_ = SoapySDR_Device._makeArgsString(varargin{:});
-            end
-
-            devices = SoapySDR_MEX("Device_enumerate", args_);
+            devices = SoapySDR_MEX("Device_enumerate", SoapySDR_Device._parseArgs(varargin{:}));
         end
     end
 end
