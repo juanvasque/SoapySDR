@@ -17,6 +17,7 @@ classdef SoapySDR_Device < handle
         % Construction/destruction
         %
 
+        % TODO: accept options the Matlab way, deal with stupid function file stuff
         function this = SoapySDR_Device(args)
         %MAKE Instantiate a new device.
             args_ = "";
@@ -667,6 +668,7 @@ classdef SoapySDR_Device < handle
     % Enumeration
     %
 
+    % TODO: accept options the Matlab way, deal with stupid function file stuff
     methods (Static)
         function devices = enumerate(args)
             args_ = "";
