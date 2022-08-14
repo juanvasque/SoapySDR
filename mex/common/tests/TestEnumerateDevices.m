@@ -12,6 +12,9 @@ function testEnumerateNoParams
     # Just make sure this runs, no idea what's actually there
     SoapySDR_Device.enumerate();
 
-function testEnumerateWithParams
+function testEnumerateWithString
     # TODO: check output for null device
-    deviceStringArgs = SoapySDR_Device.enumerate("type=null");
+    deviceStringArgs = SoapySDR_Device.enumerate("type=null,driver=null");
+
+function testEnumerateWithOptions
+    deviceStringArgs = SoapySDR_Device.enumerate({"type", "null"}, {"driver", "null"})

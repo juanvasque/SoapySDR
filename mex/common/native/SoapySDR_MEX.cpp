@@ -619,6 +619,8 @@ MEX_DEFINE(Device_enumerate) (int nlhs, mxArray *plhs[], int nrhs, const mxArray
             InputArguments input(nrhs, prhs, 1);
             OutputArguments output(nlhs, plhs, 1);
 
+            printf("%s\n", input.get<std::string>(0).c_str());
+
             output.set(0, SoapySDR::Device::enumerate(input.get<std::string>(0)));
         },
         "Device_enumerate");

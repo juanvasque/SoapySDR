@@ -21,13 +21,13 @@ classdef SoapySDR_Device < handle
         function this = SoapySDR_Device(varargin)
         %MAKE Instantiate a new device.
             args_ = "";
-            if nargsin == 1
+            if nargin == 1
                 if ischar(varargin{1})
                     args_ = varargin{1};
                 else
                     error("Args must be a string");
                 end
-            elseif nargsin > 1
+            elseif nargin > 1
                 args_ = SoapySDR_Device._makeArgsString(varargin{:});
             end
 
@@ -112,7 +112,7 @@ classdef SoapySDR_Device < handle
         function stream = setupStream(this, direction, format, channels, args)
         %SETUPSTREAM Initialize a transmit/receive stream.
             args_ = "";
-            if nargsin >= 5
+            if nargin >= 5
                 args_ = args;
             end
 
@@ -650,10 +650,12 @@ classdef SoapySDR_Device < handle
         function argsStr = _makeArgsString(varargin)
             argsStr = "";
 
-            for i = 1:nargsin
+            for i = 1:nargin
                 if i > 1
-                    argsStr = sprintf("%s," argsStr);
+                    argsStr = sprintf("%s,", argsStr);
                 end
+
+                varargin{i}
 
                 argsStr = sprintf("%s%s=%s", argsStr, varargin{i:1}, SoapySDR_MEX("toString", varargin{i:2}));
             end
@@ -666,12 +668,19 @@ classdef SoapySDR_Device < handle
 
     % TODO: accept options the Matlab way, deal with stupid function file stuff
     methods (Static)
-        function devices = enumerate(args)
+        function devices = enumerate(varargin)
             args_ = "";
-            if nargin > 0
-                assert(ischar(args));
-                args_ = args;
+            if nargin == 1
+                if ischar(varargin{1})
+                    args_ = varargin{1};
+                else
+                    error("Args must be a string");
+                end
+            elseif nargin > 1
+                args_ = SoapySDR_Device._makeArgsString(varargin{:});
             end
+
+            printf('nargin = %d, args_ = "%s"\n', nargin, args_);
 
             devices = SoapySDR_MEX("Device_enumerate", args_);
         end
