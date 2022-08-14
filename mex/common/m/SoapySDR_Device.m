@@ -648,16 +648,19 @@ classdef SoapySDR_Device < handle
 
     methods (Static, Private)
         function argsStr = _makeArgsString(varargin)
+            p = inputParser;
+            p.KeepUnmatched = true;
+            parse(p, varargin{:});
+
             argsStr = "";
 
-            for i = 1:nargin
+            fn = fieldnames(p.Unmatched);
+            for i = 1:length(fn)
                 if i > 1
                     argsStr = sprintf("%s,", argsStr);
                 end
 
-                varargin{i}
-
-                argsStr = sprintf("%s%s=%s", argsStr, varargin{i:1}, SoapySDR_MEX("toString", varargin{i:2}));
+                argsStr = sprintf("%s%s=%s", argsStr, fn{i}, SoapySDR_MEX("toString", p.Unmatched.(fn{i})));
             end
         end
     end
@@ -666,7 +669,6 @@ classdef SoapySDR_Device < handle
     % Enumeration
     %
 
-    % TODO: accept options the Matlab way, deal with stupid function file stuff
     methods (Static)
         function devices = enumerate(varargin)
             args_ = "";
@@ -674,13 +676,11 @@ classdef SoapySDR_Device < handle
                 if ischar(varargin{1})
                     args_ = varargin{1};
                 else
-                    error("Args must be a string");
+                    error("If passing args in a single parameter, must be a string");
                 end
             elseif nargin > 1
                 args_ = SoapySDR_Device._makeArgsString(varargin{:});
             end
-
-            printf('nargin = %d, args_ = "%s"\n', nargin, args_);
 
             devices = SoapySDR_MEX("Device_enumerate", args_);
         end

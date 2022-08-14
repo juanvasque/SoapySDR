@@ -200,19 +200,19 @@ MEX_DEFINE(toString) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]
             }
             else if(mxIsDouble(prhs[0]))
             {
-                output.set(0, input.get<double>(0));
+                output.set(0, SoapySDR::SettingToString(input.get<double>(0)));
             }
             else if(mxIsInt8(prhs[0]) or mxIsInt16(prhs[0]) or mxIsInt32(prhs[0]) or mxIsInt64(prhs[0]))
             {
-                output.set(0, input.get<int64_T>(0));
+                output.set(0, SoapySDR::SettingToString(input.get<int64_T>(0)));
             }
             else if(mxIsUint8(prhs[0]) or mxIsUint16(prhs[0]) or mxIsUint32(prhs[0]) or mxIsUint64(prhs[0]))
             {
-                output.set(0, input.get<uint64_T>(0));
+                output.set(0, SoapySDR::SettingToString(input.get<uint64_T>(0)));
             }
             else if(mxIsLogical(prhs[0]))
             {
-                output.set(0, input.get<bool>(0));
+                output.set(0, SoapySDR::SettingToString(input.get<bool>(0)));
             }
             else
             {
