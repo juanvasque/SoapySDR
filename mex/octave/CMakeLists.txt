@@ -34,11 +34,15 @@ string(REPLACE ";" ";-I" include_flags "-I${include_dirs}")
 string(REPLACE ";" ";-L" libdir_flags "-L${library_dirs}")
 string(REPLACE ";" ";-l" library_flags "-l${libraries}")
 
+if(CMAKE_COMPILER_IS_CXX OR (CMAKE_CXX_COMPILER_ID STREQUAL "Clang"))
+    set(other_flags "-std=c++11")
+endif()
+
 # TODO: not portable
 add_custom_command(
     OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/SoapySDR_MEX.mex
     COMMENT "Building SoapySDR_MEX.mex for Octave"
-    COMMAND ${OCTAVE_MKOCTFILE_EXECUTABLE} --mex ${include_flags} ${libdir_flags} ${library_flags} ${CMAKE_CURRENT_SOURCE_DIR}/../common/native/SoapySDR_MEX.cpp
+    COMMAND ${OCTAVE_MKOCTFILE_EXECUTABLE} --mex ${include_flags} ${libdir_flags} ${library_flags} ${other_flags} ${CMAKE_CURRENT_SOURCE_DIR}/../common/native/SoapySDR_MEX.cpp
     DEPENDS SoapySDR
     DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/../common/native/SoapySDR_MEX.cpp)
 
