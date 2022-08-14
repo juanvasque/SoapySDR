@@ -19,14 +19,39 @@
 
 using namespace mexplus;
 
-// TODO: consistency between mexErrMsgTxt and mexErrMsgIdAndTxt
 // TODO: policy on when to bail on streaming error codes or give ability for user to bail
 // TODO: explicitly fill out mandatory, do optional arguments
-// TODO: throw inside safeCall, let it deal with message output
 
 //////////////////////////////////////////////////////
 // Utility
 //////////////////////////////////////////////////////
+
+#ifdef __GNUG__
+#include <cstdlib>
+#include <memory>
+#include <cxxabi.h>
+
+// https://stackoverflow.com/a/4541470
+static std::string demangle(const char *name)
+{
+    int status = 0;
+
+    std::unique_ptr<char, void(*)(void*)> res {
+        abi::__cxa_demangle(name, NULL, NULL, &status),
+        std::free
+    };
+
+    return (status==0) ? res.get() : name;
+}
+
+#else
+
+static inline std::string demangle(const char *name)
+{
+    return name;
+}
+
+#endif
 
 #define ARRAY_SIZE(x) (sizeof(x) / sizeof(x[0]))
 
@@ -85,7 +110,7 @@ template <>
 void MxArray::to(const mxArray *array, SoapySDRLogLevel *level)
 {
     if(!level)
-        mexErrMsgTxt("Null pointer exception");
+        throw std::runtime_error("MxArray::to<SoapySDRLogLevel>: null pointer exception. This is an internal bug and should be reported");
 
     int intVal;
     MxArray::to(array, &intVal);
@@ -104,18 +129,27 @@ mxArray *MxArray::from(const SoapySDR::Kwargs &args)
     return MxArray::from(output);
 }
 
-// TODO: why doesn't this do anything in the Device constructor?
 template <typename Fcn>
 static void safeCall(const Fcn &fcn, const std::string &context)
 {
     try { fcn(); }
     catch(const std::exception &ex)
     {
-        mexErrMsgIdAndTxt(context.c_str(), ex.what());
+        std::string errorMsg(context);
+        errorMsg += ": caught ";
+        errorMsg += demangle(typeid(ex).name());
+        errorMsg += " (";
+        errorMsg += ex.what();
+        errorMsg += ")";
+
+        mexErrMsgTxt(errorMsg.c_str());
     }
     catch(...)
     {
-        mexErrMsgIdAndTxt(context.c_str(), "Unknown error.");
+        std::string errorMsg(context);
+        errorMsg += ": caught unknown error";
+
+        mexErrMsgTxt(errorMsg.c_str());
     }
 }
 
@@ -130,11 +164,21 @@ static void safeCallWithErrorCode(const Fcn &fcn, const std::string &context)
     }
     catch(const std::exception &ex)
     {
-        mexErrMsgIdAndTxt(context.c_str(), ex.what());
+        std::string errorMsg(context);
+        errorMsg += ": caught ";
+        errorMsg += demangle(typeid(ex).name());
+        errorMsg += " (";
+        errorMsg += ex.what();
+        errorMsg += ")";
+
+        mexErrMsgTxt(errorMsg.c_str());
     }
     catch(...)
     {
-        mexErrMsgIdAndTxt(context.c_str(), "Unknown error.");
+        std::string errorMsg(context);
+        errorMsg += ": caught unknown error";
+
+        mexErrMsgTxt(errorMsg.c_str());
     }
 }
 
@@ -169,9 +213,9 @@ static void SoapyLogHandler(const SoapySDRLogLevel logLevel, const char *message
         [&]()
         {
             if(!mxLoggerFcn)
-                mexErrMsgIdAndTxt("SoapyLogHandler", "This function shouldn't be called without an active log handler.");
+                throw std::runtime_error("SoapyLogHandler called without an active log handler. This is an internal bug and should be reported.");
             if(!message)
-                mexErrMsgIdAndTxt("SoapyLogHandler", "Null message.");
+                throw std::runtime_error("SoapyLogHandler: null message. This is an internal bug and should be reported.");
 
             mxArray *lhs{nullptr};
             mxArray *rhs[3]
@@ -222,11 +266,11 @@ MEX_DEFINE(Logger_registerLogHandler) (int nlhs, mxArray *plhs[], int nrhs, cons
         [&]()
         {
             if(nrhs != 1)
-                mexErrMsgIdAndTxt("Logger_registerLogHandler", "Expected one input argument.");
+                throw std::invalid_argument("Logger_registerLogHandler: expected one input argument.");
             if(!prhs[0])
-                mexErrMsgIdAndTxt("Logger_registerLogHandler", "Null argument.");
+                throw std::invalid_argument("Logger_registerLogHandler: null argument.");
             if(!mxIsClass(prhs[0], "function_handle"))
-                mexErrMsgIdAndTxt("Logger_registerLogHandler", "Expected a function handle.");
+                throw std::invalid_argument("Logger_registerLogHandler: expected a function handle.");
 
             // Note: as it is now, the last one set will leak, but that's better
             // than crashing.
@@ -354,7 +398,7 @@ template <typename T>
 T * getPointerField(const mxArray *array, const std::string &name)
 {
     if(!array)
-        mexErrMsgTxt("Null pointer exception");
+        throw std::runtime_error("getPointerField: null pointer exception. This is an internal bug and should be reported");
 
     uintptr_t uintptr = 0;
     MxArray::at(array, name.c_str(), &uintptr);
@@ -396,7 +440,7 @@ template <>
 void MxArray::to(const mxArray *array, DeviceContainer *device)
 {
     if(!device)
-        mexErrMsgTxt("Null pointer exception");
+        throw std::runtime_error("MxArray::to<DeviceContainer>: null pointer exception. This is an internal bug and should be reported");
 
     device->ptr = getPointerField<SoapySDR::Device>(array, "__internal");
 }
@@ -465,7 +509,7 @@ template <>
 void MxArray::to(const mxArray *array, StreamContainer *stream)
 {
     if(!stream)
-        mexErrMsgTxt("Null pointer exception");
+        throw std::runtime_error("MxArray::to<StreamContainer>: null pointer exception. This is an internal bug and should be reported");
 
     MxArray::at(array, "format", &stream->format);
     MxArray::at(array, "channels", &stream->channels);
@@ -751,7 +795,7 @@ MEX_DEFINE(Device_setupStream) (int nlhs, mxArray *plhs[], int nrhs, const mxArr
                 SoapySDR::KwargsFromString(streamContainer.args));
 
             if(!streamContainer.stream)
-                mexErrMsgIdAndTxt("Device_setupStream", "Failed to initialize stream.");
+                throw std::runtime_error("Failed to initialize stream");
 
             output.set(0, streamContainer);
         },
@@ -815,12 +859,12 @@ static void streamReadStream(int nlhs, mxArray *plhs[], int nrhs, const mxArray 
 
             const auto stream = input.get<StreamContainer>(0);
             if(stream.direction != SOAPY_SDR_RX)
-                mexErrMsgIdAndTxt("Device_readStream", "Cannot receive with TX stream");
+                throw std::invalid_argument("Cannot receive with TX stream");
 
             if(stream.format != expectedFormat)
             {
                 std::string errorMsg("Invalid format "+stream.format+". Expected "+expectedFormat+".");
-                mexErrMsgIdAndTxt("Device_readStream", errorMsg.c_str());
+                throw std::invalid_argument(errorMsg.c_str());
             }
 
             const auto numElems = input.get<size_t>(1);
@@ -876,19 +920,19 @@ static void streamWriteStream(int nlhs, mxArray *plhs[], int nrhs, const mxArray
 
             const auto stream = input.get<StreamContainer>(0);
             if(stream.direction != SOAPY_SDR_TX)
-                mexErrMsgIdAndTxt("Device_writeStream", "Cannot receive with TX stream");
+                throw std::invalid_argument("Cannot receive with TX stream");
 
             if(stream.format != expectedFormat)
             {
                 std::string errorMsg("Invalid format "+stream.format+". Expected "+expectedFormat+".");
-                mexErrMsgIdAndTxt("Device_writeStream", errorMsg.c_str());
+                throw std::invalid_argument(errorMsg);
             }
 
             const auto samples = input.get<std::vector<std::vector<std::complex<T>>>>(1);
             if(samples.size() != stream.channels.size())
             {
                 std::string errorMsg("Invalid sample dimensions ("+std::to_string(samples.size())+" channels). Expected "+std::to_string(stream.channels.size())+".");
-                mexErrMsgIdAndTxt("Device_writeStream", errorMsg.c_str());
+                throw std::invalid_argument(errorMsg);
             }
 
             // TODO: do we need to check for jagged arrays? Or does input type guarantee this?
@@ -933,14 +977,6 @@ static void streamWriteStream(int nlhs, mxArray *plhs[], int nrhs, const mxArray
         streamWriteStream<ctype>(nlhs, plhs, nrhs, prhs, SOAPY_SDR_ ## format); \
     }
 
-/*
-MEX_READWRITE_STREAM_API(int8_T, CS8)
-MEX_READWRITE_STREAM_API(int16_T, CS16)
-MEX_READWRITE_STREAM_API(int32_T, CS32)
-MEX_READWRITE_STREAM_API(uint8_T, CU8)
-MEX_READWRITE_STREAM_API(uint16_T, CU16)
-MEX_READWRITE_STREAM_API(uint32_T, CU32)
-*/
 MEX_READWRITE_STREAM_API(float, CF32)
 MEX_READWRITE_STREAM_API(double, CF64)
 
@@ -2067,7 +2103,6 @@ MEX_DEFINE(Device_writeRegisters) (int nlhs, mxArray *plhs[], int nrhs, const mx
         {
             InputArguments input(nrhs, prhs, 4);
 
-            // TODO: vector not importing correctly
             input.get<DeviceContainer>(0).ptr->writeRegisters(
                 input.get<std::string>(1),
                 input.get<unsigned>(2),
