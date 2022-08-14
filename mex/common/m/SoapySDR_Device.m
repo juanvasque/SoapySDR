@@ -513,9 +513,22 @@ classdef SoapySDR_Device < handle
             settingInfo = SoapySDR_MEX("Device_getSettingInfoWithKey", this.__internal, key);
         end
 
-        function writeSetting(this, key, value)
-        %WRITESETTING Write a global setting's value.
-            SoapySDR_MEX("Device_writeSetting", this.__internal, key, SoapySDR_MEX("toString", value));
+        function writeSetting(this, varargin)
+        %WRITESETTING Write global setting value(s).
+            if nargin == 0
+                error("writeSettings requires at least one setting.")
+            end
+
+            p = inputParser;
+            p.KeepUnmatched = true;
+            parse(p, varargin{:});
+
+            argsStr = "";
+
+            fn = fieldnames(p.Unmatched);
+            for i = 1:length(fn)
+                SoapySDR_MEX("Device_writeSetting", this.__internal, fn{i}, SoapySDR_MEX("toString", p.Unmatched.(fn{i})));
+            end
         end
 
         function value = readSetting(this, key)
