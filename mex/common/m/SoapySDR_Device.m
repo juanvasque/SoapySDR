@@ -31,6 +31,14 @@ classdef SoapySDR_Device < handle
         end
 
         %
+        % Display
+        %
+
+        function str = disp(this)
+            printf("%s:%s\n", this.driverKey, this.hardwareKey);
+        end
+
+        %
         % Channels API
         %
 
