@@ -203,7 +203,7 @@ struct MxTypes<T, typename std::enable_if<std::is_floating_point<T>::value &&
 template <typename T>
 struct MxTypes<T, typename std::enable_if<
     std::is_same<typename std::remove_cv<T>::type,
-                 std::complex<float>>::value,
+                 std::complex<float> >::value,
                  T>::type> {
   typedef T type;
   typedef mxComplex array_type;
@@ -214,7 +214,7 @@ struct MxTypes<T, typename std::enable_if<
 template <typename T>
 struct MxTypes<T, typename std::enable_if<
     std::is_same<typename std::remove_cv<T>::type,
-                 std::complex<double>>::value,
+                 std::complex<double> >::value,
                  T>::type> {
   typedef T type;
   typedef mxComplex array_type;

@@ -31,17 +31,14 @@ using namespace mexplus;
 #include <memory>
 #include <cxxabi.h>
 
-// https://stackoverflow.com/a/4541470
 static std::string demangle(const char *name)
 {
     int status = 0;
 
-    std::unique_ptr<char, void(*)(void*)> res {
-        abi::__cxa_demangle(name, NULL, NULL, &status),
-        std::free
-    };
+    char buff[128]{0};
+    abi::__cxa_demangle(name, NULL, NULL, &status);
 
-    return (status==0) ? res.get() : name;
+    return (status==0) ? std::string(buff) : "";
 }
 
 #else
@@ -381,7 +378,7 @@ MEX_DEFINE(Time_timeNsToTicks) (int nlhs, mxArray *plhs[], int nrhs, const mxArr
 template <>
 mxArray *MxArray::from(const SoapySDR::Range &range)
 {
-    const char *fields[]
+    const char *fields[3]
     {
         "minimum",
         "maximum",
@@ -402,7 +399,7 @@ mxArray *MxArray::from(const SoapySDR::Range &range)
 template <>
 mxArray *MxArray::from(const SoapySDR::ArgInfo &argInfo)
 {
-    const char *fields[]
+    const char *fields[9]
     {
         "key",
         "value",
