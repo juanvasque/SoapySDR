@@ -132,9 +132,9 @@ function fcn = __testDirection(device, direction)
     # Sensor API
     #
 
-    assertEqual(0, length(device.listSensors(direction, 0)));
-    device.getSensorInfo(direction, 0, "");
-    assertEqual(0, length(device.readSensor(direction, 0, "")));
+    assertEqual(0, length(device.listChannelSensors(direction, 0)));
+    device.getChannelSensorInfo(direction, 0, "");
+    assertEqual(0, length(device.readChannelSensor(direction, 0, "")));
 
     #
     # Settings API
