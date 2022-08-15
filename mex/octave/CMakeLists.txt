@@ -34,8 +34,8 @@ string(REPLACE ";" ";-I" include_flags "-I${include_dirs}")
 string(REPLACE ";" ";-L" libdir_flags "-L${library_dirs}")
 string(REPLACE ";" ";-l" library_flags "-l${libraries}")
 
-if(CMAKE_COMPILER_IS_CXX OR (CMAKE_CXX_COMPILER_ID STREQUAL "Clang"))
-    set(other_flags "-std=c++11")
+if(CMAKE_COMPILER_IS_CXX OR (CMAKE_CXX_COMPILER_ID STREQUAL "Clang") OR (CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang"))
+    set(other_flags "-std=gnu++11")
 endif()
 
 # TODO: not portable
