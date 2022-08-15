@@ -136,8 +136,11 @@ static void safeCall(const Fcn &fcn, const std::string &context)
         errorMsg += ex.what();
         errorMsg += ")";
 
+        printf("%s\n", errorMsg.c_str());
+
         mexErrMsgTxt(errorMsg.c_str());
     }
+    // No global catch, suppresses Octave errors
 }
 
 template <typename Fcn>
@@ -673,7 +676,7 @@ MEX_DEFINE(Device_make) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prh
             static const std::string buildTimeABI(SOAPY_SDR_ABI_VERSION);
             const auto scriptABI = input.get<std::string>(1);
 
-            if((runtimeABI != buildTimeABI) or (runtimeABI == scriptABI))
+            if((runtimeABI != buildTimeABI) or (runtimeABI != scriptABI))
             {
                 output.set(0, DeviceContainer(nullptr));
 
@@ -700,7 +703,7 @@ MEX_DEFINE(Device_unmake) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *p
         {
             InputArguments input(nrhs, prhs, 1);
 
-            SoapySDR::Device::unmake(input.get<DeviceContainer>(0).ptr);
+            if(nrhs > 0) SoapySDR::Device::unmake(input.get<DeviceContainer>(0).ptr);
         },
         "Device_unmake");
 }
