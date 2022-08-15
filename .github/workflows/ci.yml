@@ -166,7 +166,6 @@ jobs:
           - name: Install dependencies
             run: |
                 brew install doxygen luajit octave
-                which luajit
                 pip install numpy
                 pip3 install numpy
 
