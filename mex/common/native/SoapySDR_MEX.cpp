@@ -32,14 +32,17 @@ using namespace mexplus;
 #include <memory>
 #include <cxxabi.h>
 
+// https://stackoverflow.com/a/4541470
 static std::string demangle(const char *name)
 {
     int status = 0;
 
-    char buff[128]{0};
-    abi::__cxa_demangle(name, NULL, NULL, &status);
+    std::unique_ptr<char, void(*)(void*)> res {
+        abi::__cxa_demangle(name, NULL, NULL, &status),
+        std::free
+    };
 
-    return (status==0) ? std::string(buff) : "";
+    return (status==0) ? std::string(res.get()) : "";
 }
 
 #else
@@ -135,48 +138,25 @@ static void safeCall(const Fcn &fcn, const std::string &context)
 
         mexErrMsgTxt(errorMsg.c_str());
     }
-    catch(...)
-    {
-        std::string errorMsg(context);
-        errorMsg += ": caught unknown error";
-
-        mexErrMsgTxt(errorMsg.c_str());
-    }
 }
 
 template <typename Fcn>
-static void safeCallWithErrorCode(const Fcn &fcn, const std::string &context)
+static inline void safeCallWithErrorCode(const Fcn &fcn, const std::string &context)
 {
-    try
-    {
-        int errorCode = fcn();
-        if(errorCode)
+    safeCall(
+        [&]()
         {
-            std::string errorMsg("SoapySDR returned error ");
-            errorMsg += SoapySDR::errToStr(errorCode);
-            errorMsg += ".";
+            int errorCode = fcn();
+            if(errorCode)
+            {
+                std::string errorMsg("SoapySDR returned error ");
+                errorMsg += SoapySDR::errToStr(errorCode);
+                errorMsg += ".";
 
-            mexErrMsgTxt(errorMsg.c_str());
-        }
-    }
-    catch(const std::exception &ex)
-    {
-        std::string errorMsg(context);
-        errorMsg += ": caught ";
-        errorMsg += demangle(typeid(ex).name());
-        errorMsg += " (";
-        errorMsg += ex.what();
-        errorMsg += ")";
-
-        mexErrMsgTxt(errorMsg.c_str());
-    }
-    catch(...)
-    {
-        std::string errorMsg(context);
-        errorMsg += ": caught unknown error";
-
-        mexErrMsgTxt(errorMsg.c_str());
-    }
+                throw std::runtime_error(errorMsg.c_str());
+            }
+        },
+        context);
 }
 
 //////////////////////////////////////////////////////
@@ -431,6 +411,58 @@ mxArray *MxArray::from(const SoapySDR::ArgInfo &argInfo)
 }
 
 //////////////////////////////////////////////////////
+// <SoapySDR/Version.hpp>
+//////////////////////////////////////////////////////
+
+MEX_DEFINE(Version_getMEXABIVersion) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    safeCall(
+        [&]()
+        {
+            OutputArguments output(nlhs, plhs, 1);
+
+            output.set(0, SOAPY_SDR_ABI_VERSION);
+        },
+        "getMEXABIVersion");
+}
+
+MEX_DEFINE(Version_getABIVersion) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    safeCall(
+        [&]()
+        {
+            OutputArguments output(nlhs, plhs, 1);
+
+            output.set(0, SoapySDR::getABIVersion());
+        },
+        "getABIVersion");
+}
+
+MEX_DEFINE(Version_getAPIVersion) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    safeCall(
+        [&]()
+        {
+            OutputArguments output(nlhs, plhs, 1);
+
+            output.set(0, SoapySDR::getAPIVersion());
+        },
+        "getAPIVersion");
+}
+
+MEX_DEFINE(Version_getLibVersion) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    safeCall(
+        [&]()
+        {
+            OutputArguments output(nlhs, plhs, 1);
+
+            output.set(0, SoapySDR::getLibVersion());
+        },
+        "getLibVersion");
+}
+
+//////////////////////////////////////////////////////
 // <SoapySDR/Device.hpp>
 //////////////////////////////////////////////////////
 
@@ -633,17 +665,24 @@ MEX_DEFINE(Device_make) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prh
     safeCall(
         [&]()
         {
-            InputArguments input(nrhs, prhs, 1);
+            InputArguments input(nrhs, prhs, 2);
             OutputArguments output(nlhs, plhs, 1);
 
             // Make sure the ABI matches before doing anything.
+            const auto runtimeABI = SoapySDR::getABIVersion();
             static const std::string buildTimeABI(SOAPY_SDR_ABI_VERSION);
-            if(SoapySDR::getABIVersion() != buildTimeABI)
+            const auto scriptABI = input.get<std::string>(1);
+
+            if((runtimeABI != buildTimeABI) or (runtimeABI == scriptABI))
             {
+                output.set(0, DeviceContainer(nullptr));
+
                 std::string errorMsg("Failed ABI check. SoapySDR ");
                 errorMsg += SoapySDR::getABIVersion();
                 errorMsg += ", MEX bindings ";
                 errorMsg += buildTimeABI;
+                errorMsg += ", M scripts ";
+                errorMsg += scriptABI;
                 errorMsg += ". Rebuild the module.";
 
                 throw std::runtime_error(errorMsg);

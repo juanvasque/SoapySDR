@@ -9,8 +9,8 @@ function test_suite=TestBuildInfo
     initTestSuite;
 
 function testBuildInfoStrings
-    SoapySDR;
-
-    assertNotEqual("", SoapySDR.getABIVersion());
-    assertNotEqual("", SoapySDR.getAPIVersion());
-    assertNotEqual("", SoapySDR.getLibVersion());
+    assertLessThan(0, length(SoapySDR_getABIVersion()));
+    assertLessThan(0, length(SoapySDR_getMEXABIVersion()));
+    assertLessThan(0, length(SoapySDR_getScriptABIVersion()));
+    assertLessThan(0, length(SoapySDR_getAPIVersion()));
+    assertLessThan(0, length(SoapySDR_getLibVersion()));

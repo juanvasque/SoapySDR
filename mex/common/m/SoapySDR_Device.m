@@ -19,7 +19,7 @@ classdef SoapySDR_Device < handle
 
         function this = SoapySDR_Device(varargin)
         %MAKE Instantiate a new device.
-            this.__internal = SoapySDR_MEX("Device_make", SoapySDR_Device._parseArgs(varargin{:}));
+            this.__internal = SoapySDR_MEX("Device_make", SoapySDR_Device._parseArgs(varargin{:}), SoapySDR_getScriptABIVersion());
             this.driverKey = this.__internal.driverKey;
             this.hardwareKey = this.__internal.hardwareKey;
             this.hardwareInfo = this.__internal.hardwareInfo;

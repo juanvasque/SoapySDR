@@ -1,9 +1,17 @@
+configure_file(
+    ${CMAKE_CURRENT_SOURCE_DIR}/common/m/SoapySDR_getScriptABIVersion.in.m
+    ${CMAKE_CURRENT_BINARY_DIR}/common/m/SoapySDR_getScriptABIVersion.m)
+
 set(m_files
     ${CMAKE_CURRENT_SOURCE_DIR}/common/m/SoapySDR_ArgInfoType.m
     ${CMAKE_CURRENT_SOURCE_DIR}/common/m/SoapySDR_clearLogHandler.m
     ${CMAKE_CURRENT_SOURCE_DIR}/common/m/SoapySDR_Device.m
     ${CMAKE_CURRENT_SOURCE_DIR}/common/m/SoapySDR_Direction.m
     ${CMAKE_CURRENT_SOURCE_DIR}/common/m/SoapySDR_ErrorCode.m
+    ${CMAKE_CURRENT_SOURCE_DIR}/common/m/SoapySDR_getABIVersion.m
+    ${CMAKE_CURRENT_SOURCE_DIR}/common/m/SoapySDR_getAPIVersion.m
+    ${CMAKE_CURRENT_SOURCE_DIR}/common/m/SoapySDR_getLibVersion.m
+    ${CMAKE_CURRENT_SOURCE_DIR}/common/m/SoapySDR_getMEXABIVersion.m
     ${CMAKE_CURRENT_SOURCE_DIR}/common/m/SoapySDR_logf.m
     ${CMAKE_CURRENT_SOURCE_DIR}/common/m/SoapySDR_LogLevel.m
     ${CMAKE_CURRENT_SOURCE_DIR}/common/m/SoapySDR_log.m
@@ -15,9 +23,11 @@ set(m_files
     ${CMAKE_CURRENT_SOURCE_DIR}/common/m/SoapySDR_Stream.m
     ${CMAKE_CURRENT_SOURCE_DIR}/common/m/SoapySDR_ticksToTimeNs.m
     ${CMAKE_CURRENT_SOURCE_DIR}/common/m/SoapySDR_timeNsToTicks.m
-    ${CMAKE_CURRENT_SOURCE_DIR}/common/m/SoapySDR_TxStream.m)
+    ${CMAKE_CURRENT_SOURCE_DIR}/common/m/SoapySDR_TxStream.m
+    ${CMAKE_CURRENT_BINARY_DIR}/common/m/SoapySDR_getScriptABIVersion.m)
 
 set(test_names
+    TestBuildInfo
     TestConstants
     TestDeviceAPI
     TestEnumerateDevices
