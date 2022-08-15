@@ -100,5 +100,5 @@ foreach(test ${test_names})
         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 
     set_tests_properties(Octave_${test} PROPERTIES
-        FAIL_REGULAR_EXPRESSION "FAILED;warning: error caught")
+        FAIL_REGULAR_EXPRESSION "FAILED;error caught")
 endforeach()
