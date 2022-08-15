@@ -155,8 +155,7 @@ function fcn = __testDirection(device, direction)
         "", false);
 
 function testDeviceAPI
-    # Make sure all methods work
-    device = SoapySDR_Device();
+    # Make sure both methods work
     device = SoapySDR_Device("driver=null,type=null");
     device = SoapySDR_Device( ...
         "driver", "null", ...
