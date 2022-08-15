@@ -96,7 +96,7 @@ foreach(test ${test_names})
 
     add_test(
         NAME Octave_${test}
-        COMMAND ${OCTAVE_EXECUTABLE} --eval "moxunit_set_path(); moxunit_runtests(filename='${test_path}')"
+        COMMAND ${OCTAVE_EXECUTABLE} --no-gui --eval "moxunit_set_path(); moxunit_runtests(filename='${test_path}')"
         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 
     set_tests_properties(Octave_${test} PROPERTIES
