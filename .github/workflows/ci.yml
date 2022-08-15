@@ -116,6 +116,11 @@ jobs:
             run: |
                 OCTAVE_PATHS=$(grep octave ${{github.workspace}}/build/install_manifest.txt | xargs dirname | uniq)
                 for OCTAVE_PATH in $OCTAVE_PATHS; do echo $OCTAVE_PATH; octave --eval "addpath(\"$OCTAVE_PATH\"); savepath"; done
+                octave --eval "SoapySDR_getAPIVersion()"
+                octave --eval "SoapySDR_getABIVersion()"
+                octave --eval "SoapySDR_ErrorCode.Timeout"
+                octave --eval "SoapySDR_ErrorCode.toString(SoapySDR_ErrorCode.Timeout)"
+                octave --eval "SoapySDR_Device('type=null,driver=null')"
     osx-ci:
         name: OS X
         runs-on: macos-latest
@@ -212,6 +217,11 @@ jobs:
             run: |
                 OCTAVE_PATHS=$(grep octave ${{github.workspace}}/build/install_manifest.txt | xargs dirname | uniq)
                 for OCTAVE_PATH in $OCTAVE_PATHS; do echo $OCTAVE_PATH; octave --eval "addpath(\"$OCTAVE_PATH\"); savepath"; done
+                octave --eval "SoapySDR_getAPIVersion()"
+                octave --eval "SoapySDR_getABIVersion()"
+                octave --eval "SoapySDR_ErrorCode.Timeout"
+                octave --eval "SoapySDR_ErrorCode.toString(SoapySDR_ErrorCode.Timeout)"
+                octave --eval "SoapySDR_Device('type=null,driver=null')"
     windows-ci:
         name: Windows
         runs-on: windows-2019
