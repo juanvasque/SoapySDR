@@ -52,10 +52,10 @@ classdef SoapySDR_Stream < handle
             if nargin >= 2
                 flags_ = flags;
             end
-            if nargin >= 2
+            if nargin >= 3
                 timeNs_ = timeNs;
             end
-            if nargin >= 2
+            if nargin >= 4
                 numElems_ = numElems;
             end
 
@@ -70,7 +70,7 @@ classdef SoapySDR_Stream < handle
             if nargin >= 2
                 flags_ = flags;
             end
-            if nargin >= 2
+            if nargin >= 3
                 timeNs_ = timeNs;
             end
 
