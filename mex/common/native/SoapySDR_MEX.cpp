@@ -21,6 +21,7 @@ using namespace mexplus;
 
 // TODO: policy on when to bail on streaming error codes or give ability for user to bail
 // TODO: explicitly fill out mandatory, do optional arguments
+// TODO: error message consistency (end in periods or not, etc)
 
 //////////////////////////////////////////////////////
 // Un-exposed utility
@@ -816,20 +817,18 @@ MEX_DEFINE(Device_setupStream) (int nlhs, mxArray *plhs[], int nrhs, const mxArr
             OutputArguments output(nlhs, plhs, 1);
 
             const auto deviceContainer = input.get<DeviceContainer>(0);
-            const auto format = input.get<std::string>(4);
+            const auto format = input.get<std::string>(2);
 
             if((format != SOAPY_SDR_CF32) and (format != SOAPY_SDR_CF64))
                 throw std::invalid_argument("Matlab/Octave bindings only support formats CF32 and CF64.");
 
-            StreamContainer streamContainer
-            {
-                nullptr,
-                deviceContainer.ptr,
-                input.get<int>(1),
-                input.get<std::string>(2),
-                input.get<std::vector<size_t>>(3),
-                format
-            };
+            StreamContainer streamContainer;
+            streamContainer.device = deviceContainer.ptr;
+            streamContainer.direction = input.get<int>(1);
+            streamContainer.format = format;
+            streamContainer.channels = input.get<std::vector<size_t>>(3);
+            streamContainer.args = input.get<std::string>(4);
+
             streamContainer.stream = streamContainer.device->setupStream(
                 streamContainer.direction,
                 streamContainer.format,
