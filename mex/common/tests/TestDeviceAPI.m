@@ -141,7 +141,7 @@ function fcn = __testDirection(device, direction)
     #
 
     assertEqual(0, length(device.getChannelSettingInfo(direction, 0)));
-    device.getChannelSettingInfo(direction, 0, "");
+    device.getChannelSettingInfoWithKey(direction, 0, "");
     assertEqual(0, length(device.readChannelSetting(direction, 0, "")));
     device.writeChannelSetting(direction, 0, "", "");
     device.writeChannelSetting(direction, 0, "", 0);
@@ -228,7 +228,7 @@ function testDeviceAPI
     #
 
     assertEqual(0, length(device.getSettingInfo()));
-    device.getSettingInfo("");
+    device.getSettingInfoWithKey("");
     assertEqual(0, length(device.readSetting("")));
     device.writeSetting("", "");
     device.writeSetting("", 0);
