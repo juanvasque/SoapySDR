@@ -168,7 +168,7 @@ jobs:
                 mkdir -p ${{github.workspace}}/build
                 cd ${{github.workspace}}/build
                 cmake -DCMAKE_INSTALL_PREFIX=${INSTALL_PREFIX} -DCMAKE_BUILD_TYPE=${{matrix.build_type}} -DPYTHON_EXECUTABLE=${PYTHON_EXECUTABLE} -DPYTHON3_EXECUTABLE=${PYTHON3_EXECUTABLE} ${{github.workspace}}
-                make
+                make VERBOSE=1
           - name: Install
             run: |
                 cd ${{github.workspace}}/build
