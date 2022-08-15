@@ -55,10 +55,18 @@ jobs:
                 sudo apt update --fix-missing
                 sudo apt install -y libpython2-dev libpython3-dev python-numpy python3-numpy doxygen luajit lua-ldoc liboctave-dev
 
+                # LuaJIT unit testing
                 # LuaRocks stopped installing properly through apt, so just copy the file from its repo
                 git clone https://github.com/bluebird75/luaunit -b LUAUNIT_V3_4
                 sudo mkdir -p /usr/local/share/lua/5.1
                 sudo cp luaunit/luaunit.lua /usr/local/share/lua/5.1
+
+                # Matlab/Octave unit testing
+                git clone https://github.com/MOxUnit/MOxUnit.git
+                cd MOxUnit
+                git checkout 91b9cae37785cbb1241835d07c9c2b5ae8d9f62a # To guarantee diff applies
+                git apply ${{github.workspace}}/mex/common/patches/constructor-error-hack.diff
+                make install
           - name: Build SoapySDR
             run: |
                 mkdir -p ${{github.workspace}}/build
@@ -104,6 +112,10 @@ jobs:
                 luajit -e 'SoapySDR = require("SoapySDR"); print(SoapySDR.Error.TIMEOUT)'
                 luajit -e 'SoapySDR = require("SoapySDR"); print(SoapySDR.Error.ToString(SoapySDR.Error.TIMEOUT))'
                 luajit -e 'SoapySDR = require("SoapySDR"); print(SoapySDR.Device.new("driver=null"))'
+          - name: Test Octave bindings
+            run: |
+                OCTAVE_PATHS=$(grep octave ${{github.workspace}}/build/install_manifest.txt | xargs dirname | uniq)
+                for OCTAVE_PATH in $OCTAVE_PATHS; do echo $OCTAVE_PATH; octave --eval "addpath(\"$OCTAVE_PATH\"); savepath"; done
     osx-ci:
         name: OS X
         runs-on: macos-latest
@@ -163,6 +175,13 @@ jobs:
                 git clone https://github.com/bluebird75/luaunit.git -b LUAUNIT_V3_4
                 sudo mkdir -p /usr/local/share/lua/5.1
                 sudo cp luaunit/luaunit.lua /usr/local/share/lua/5.1
+
+                # Matlab/Octave unit testing
+                git clone https://github.com/MOxUnit/MOxUnit.git
+                cd MOxUnit
+                git checkout 91b9cae37785cbb1241835d07c9c2b5ae8d9f62a # To guarantee diff applies
+                git apply ${{github.workspace}}/mex/common/patches/constructor-error-hack.diff
+                make install
           - name: Build SoapySDR
             run: |
                 mkdir -p ${{github.workspace}}/build
@@ -190,6 +209,10 @@ jobs:
                 luajit -e 'SoapySDR = require("SoapySDR"); print(SoapySDR.Error.TIMEOUT)'
                 luajit -e 'SoapySDR = require("SoapySDR"); print(SoapySDR.Error.ToString(SoapySDR.Error.TIMEOUT))'
                 luajit -e 'SoapySDR = require("SoapySDR"); print(SoapySDR.Device.new("driver=null"))'
+          - name: Test Octave bindings
+            run: |
+                OCTAVE_PATHS=$(grep octave ${{github.workspace}}/build/install_manifest.txt | xargs dirname | uniq)
+                for OCTAVE_PATH in $OCTAVE_PATHS; do echo $OCTAVE_PATH; octave --eval "addpath(\"$OCTAVE_PATH\"); savepath"; done
     windows-ci:
         name: Windows
         runs-on: windows-2019
@@ -242,6 +265,7 @@ jobs:
             run: |
                 mkdir -p "$Env:LUAJIT_LUA_DIR"
 
+                # LuaJIT
                 cd ${{runner.workspace}}
                 git clone https://github.com/LuaJIT/LuaJIT.git -b v2.1
                 cd LuaJIT\src
@@ -250,6 +274,7 @@ jobs:
                 cp lua51.dll "$Env:LUAJIT_INSTALL_PREFIX"
                 cp -r jit "$Env:LUAJIT_INSTALL_PREFIX"
 
+                # LuaJIT unit testing
                 cd ${{runner.workspace}}
                 git clone https://github.com/bluebird75/luaunit.git -b LUAUNIT_V3_4
                 cp -v luaunit\luaunit.lua "$Env:LUAJIT_LUA_DIR"
