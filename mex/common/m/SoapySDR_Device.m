@@ -488,7 +488,7 @@ classdef SoapySDR_Device < handle
 
         function sensors = listChannelSensors(this, direction, channel)
         %LISTCHANNELSENSORS List the available channel readback sensors.
-            sensors = SoapySDR_MEX("Device_listChannelSensor", this.__internal, direction, channel);
+            sensors = SoapySDR_MEX("Device_listChannelSensors", this.__internal, direction, channel);
         end
 
         function sensorInfo = getChannelSensorInfo(this, sensor, direction, channel)
