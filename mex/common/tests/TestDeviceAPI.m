@@ -75,7 +75,7 @@ function fcn = __testDirection(device, direction)
     device.setGainMode(direction, 0, true);
 
     assertEqual(0.0, device.getGain(direction, 0));
-    assertEqual(0.0, device.getGain(direction, 0, ""));
+    assertEqual(0.0, device.getGainElement(direction, 0, ""));
     device.setGain(direction, 0, 0.0);
     device.setGainElement(direction, 0, "", 0.0);
 
