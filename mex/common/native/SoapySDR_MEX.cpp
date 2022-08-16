@@ -24,7 +24,7 @@ using namespace mexplus;
 // TODO: error message consistency (end in periods or not, etc)
 
 //////////////////////////////////////////////////////
-// Un-exposed utility
+// Internal utility
 //////////////////////////////////////////////////////
 
 #ifdef __GNUG__
@@ -67,6 +67,62 @@ static inline T * toPointer(uintptr_t num)
 {
     return reinterpret_cast<T *>(num);
 }
+
+// Since we can't specialize MxArray::from() for pointers
+template <typename T>
+T * getPointerField(const mxArray *array, const std::string &name)
+{
+    if(!array)
+        throw std::runtime_error("getPointerField: null pointer exception. This is an internal bug and should be reported");
+
+    uintptr_t uintptr = 0;
+    MxArray::at(array, name.c_str(), &uintptr);
+
+    return reinterpret_cast<T *>(uintptr);
+}
+
+template <typename Fcn>
+static void safeCall(const Fcn &fcn, const std::string &context)
+{
+    try { fcn(); }
+    catch(const std::exception &ex)
+    {
+        std::string errorMsg(context);
+        errorMsg += ": caught ";
+        errorMsg += demangle(typeid(ex).name());
+        errorMsg += " (";
+        errorMsg += ex.what();
+        errorMsg += ")";
+
+        printf("%s\n", errorMsg.c_str());
+
+        mexErrMsgTxt(errorMsg.c_str());
+    }
+    // No global catch, suppresses Octave errors
+}
+
+template <typename Fcn>
+static inline void safeCallWithErrorCode(const Fcn &fcn, const std::string &context)
+{
+    safeCall(
+        [&]()
+        {
+            int errorCode = fcn();
+            if(errorCode)
+            {
+                std::string errorMsg("SoapySDR returned error ");
+                errorMsg += SoapySDR::errToStr(errorCode);
+                errorMsg += ".";
+
+                throw std::runtime_error(errorMsg.c_str());
+            }
+        },
+        context);
+}
+
+//////////////////////////////////////////////////////
+// Types
+//////////////////////////////////////////////////////
 
 template <>
 inline mxArray *MxArray::from(const SoapySDR::ArgInfo::Type &type)
@@ -123,242 +179,6 @@ mxArray *MxArray::from(const SoapySDR::Kwargs &args)
     return MxArray::from(output);
 }
 
-template <typename Fcn>
-static void safeCall(const Fcn &fcn, const std::string &context)
-{
-    try { fcn(); }
-    catch(const std::exception &ex)
-    {
-        std::string errorMsg(context);
-        errorMsg += ": caught ";
-        errorMsg += demangle(typeid(ex).name());
-        errorMsg += " (";
-        errorMsg += ex.what();
-        errorMsg += ")";
-
-        printf("%s\n", errorMsg.c_str());
-
-        mexErrMsgTxt(errorMsg.c_str());
-    }
-    // No global catch, suppresses Octave errors
-}
-
-template <typename Fcn>
-static inline void safeCallWithErrorCode(const Fcn &fcn, const std::string &context)
-{
-    safeCall(
-        [&]()
-        {
-            int errorCode = fcn();
-            if(errorCode)
-            {
-                std::string errorMsg("SoapySDR returned error ");
-                errorMsg += SoapySDR::errToStr(errorCode);
-                errorMsg += ".";
-
-                throw std::runtime_error(errorMsg.c_str());
-            }
-        },
-        context);
-}
-
-//////////////////////////////////////////////////////
-// Exposed utility functions
-//////////////////////////////////////////////////////
-
-// Less annoying than dealing with function files vs. script files.
-MEX_DEFINE(toString) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
-{
-    safeCall(
-        [&]()
-        {
-            InputArguments input(nrhs, prhs, 1);
-            OutputArguments output(nlhs, plhs, 1);
-
-            if(mxIsChar(prhs[0]))
-            {
-                output.set(0, input.get<std::string>(0));
-            }
-            else if(mxIsDouble(prhs[0]))
-            {
-                output.set(0, SoapySDR::SettingToString(input.get<double>(0)));
-            }
-            else if(mxIsInt8(prhs[0]) or mxIsInt16(prhs[0]) or mxIsInt32(prhs[0]) or mxIsInt64(prhs[0]))
-            {
-                output.set(0, SoapySDR::SettingToString(input.get<int64_T>(0)));
-            }
-            else if(mxIsUint8(prhs[0]) or mxIsUint16(prhs[0]) or mxIsUint32(prhs[0]) or mxIsUint64(prhs[0]))
-            {
-                output.set(0, SoapySDR::SettingToString(input.get<uint64_T>(0)));
-            }
-            else if(mxIsLogical(prhs[0]))
-            {
-                output.set(0, SoapySDR::SettingToString(input.get<bool>(0)));
-            }
-            else
-            {
-                std::string errorMsg("Unsupported type: ");
-                errorMsg += mxGetClassName(prhs[0]);
-
-                throw std::invalid_argument(errorMsg);
-            }
-        },
-        "toString");
-}
-
-//////////////////////////////////////////////////////
-// <SoapySDR/Errors.hpp>
-//////////////////////////////////////////////////////
-
-MEX_DEFINE(Error_errToStr) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
-{
-    safeCall(
-        [&]()
-        {
-            InputArguments input(nrhs, prhs, 1);
-            OutputArguments output(nlhs, plhs, 1);
-
-            output.set(
-                0,
-                SoapySDR::errToStr(input.get<int>(0)));
-        },
-        "ticksToTimeNs");
-}
-
-//////////////////////////////////////////////////////
-// <SoapySDR/Logger.hpp>
-//////////////////////////////////////////////////////
-
-static mxArray *mxLoggerFcn = nullptr;
-
-static void SoapyLogHandler(const SoapySDRLogLevel logLevel, const char *message)
-{
-    safeCall(
-        [&]()
-        {
-            if(!mxLoggerFcn)
-                throw std::runtime_error("SoapyLogHandler called without an active log handler. This is an internal bug and should be reported.");
-            if(!message)
-                throw std::runtime_error("SoapyLogHandler: null message. This is an internal bug and should be reported.");
-
-            mxArray *lhs{nullptr};
-            mxArray *rhs[3]
-            {
-                mxLoggerFcn,
-                MxArray::from(logLevel),
-                MxArray::from(message),
-            };
-
-            mexCallMATLAB(0, &lhs, ARRAY_SIZE(rhs), rhs, "feval");
-
-            // Clean up
-            mxDestroyArray(rhs[2]);
-            mxDestroyArray(rhs[1]);
-        },
-        "SoapyLogHandler");
-}
-
-MEX_DEFINE(Logger_log) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
-{
-    safeCall(
-        [&]()
-        {
-            InputArguments input(nrhs, prhs, 2);
-
-            SoapySDR::log(
-                input.get<SoapySDRLogLevel>(0),
-                input.get<std::string>(1).c_str());
-        },
-        "Logger_log");
-}
-
-MEX_DEFINE(Logger_setLogLevel) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
-{
-    safeCall(
-        [&]()
-        {
-            InputArguments input(nrhs, prhs, 1);
-
-            SoapySDR::setLogLevel(input.get<SoapySDRLogLevel>(0));
-        },
-        "Logger_setLogLevel");
-}
-
-MEX_DEFINE(Logger_registerLogHandler) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
-{
-    safeCall(
-        [&]()
-        {
-            if(nrhs != 1)
-                throw std::invalid_argument("Logger_registerLogHandler: expected one input argument.");
-            if(!prhs[0])
-                throw std::invalid_argument("Logger_registerLogHandler: null argument.");
-            if(!mxIsClass(prhs[0], "function_handle"))
-                throw std::invalid_argument("Logger_registerLogHandler: expected a function handle.");
-
-            // Note: as it is now, the last one set will leak, but that's better
-            // than crashing.
-            mxLoggerFcn = mxDuplicateArray(prhs[0]);
-            mexMakeArrayPersistent(mxLoggerFcn);
-
-            SoapySDR::registerLogHandler(&SoapyLogHandler);
-        },
-        "Logger_registerLogHandler");
-}
-
-MEX_DEFINE(Logger_clearLogHandler) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
-{
-    safeCall(
-        [&]()
-        {
-            mxLoggerFcn = nullptr;
-            SoapySDR::registerLogHandler(nullptr);
-        },
-        "Logger_clearLogHandler");
-}
-
-//////////////////////////////////////////////////////
-// <SoapySDR/Time.hpp>
-//////////////////////////////////////////////////////
-
-MEX_DEFINE(Time_ticksToTimeNs) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
-{
-    safeCall(
-        [&]()
-        {
-            InputArguments input(nrhs, prhs, 2);
-            OutputArguments output(nlhs, plhs, 1);
-
-            output.set(
-                0,
-                SoapySDR::ticksToTimeNs(
-                    input.get<long long>(0),
-                    input.get<double>(1)));
-        },
-        "ticksToTimeNs");
-}
-
-MEX_DEFINE(Time_timeNsToTicks) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
-{
-    safeCall(
-        [&]()
-        {
-            InputArguments input(nrhs, prhs, 2);
-            OutputArguments output(nlhs, plhs, 1);
-
-            output.set(
-                0,
-                SoapySDR::timeNsToTicks(
-                    input.get<long long>(0),
-                    input.get<double>(1)));
-        },
-        "timeNsToTicks");
-}
-
-//////////////////////////////////////////////////////
-// <SoapySDR/Types.hpp>
-//////////////////////////////////////////////////////
-
 template <>
 mxArray *MxArray::from(const SoapySDR::Range &range)
 {
@@ -411,75 +231,6 @@ mxArray *MxArray::from(const SoapySDR::ArgInfo &argInfo)
     #undef SET_FIELD
 
     return struct_array.release();
-}
-
-//////////////////////////////////////////////////////
-// <SoapySDR/Version.hpp>
-//////////////////////////////////////////////////////
-
-MEX_DEFINE(Version_getMEXABIVersion) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
-{
-    safeCall(
-        [&]()
-        {
-            OutputArguments output(nlhs, plhs, 1);
-
-            output.set(0, SOAPY_SDR_ABI_VERSION);
-        },
-        "getMEXABIVersion");
-}
-
-MEX_DEFINE(Version_getABIVersion) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
-{
-    safeCall(
-        [&]()
-        {
-            OutputArguments output(nlhs, plhs, 1);
-
-            output.set(0, SoapySDR::getABIVersion());
-        },
-        "getABIVersion");
-}
-
-MEX_DEFINE(Version_getAPIVersion) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
-{
-    safeCall(
-        [&]()
-        {
-            OutputArguments output(nlhs, plhs, 1);
-
-            output.set(0, SoapySDR::getAPIVersion());
-        },
-        "getAPIVersion");
-}
-
-MEX_DEFINE(Version_getLibVersion) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
-{
-    safeCall(
-        [&]()
-        {
-            OutputArguments output(nlhs, plhs, 1);
-
-            output.set(0, SoapySDR::getLibVersion());
-        },
-        "getLibVersion");
-}
-
-//////////////////////////////////////////////////////
-// <SoapySDR/Device.hpp>
-//////////////////////////////////////////////////////
-
-// Since we can't specialize MxArray::from() for pointers
-template <typename T>
-T * getPointerField(const mxArray *array, const std::string &name)
-{
-    if(!array)
-        throw std::runtime_error("getPointerField: null pointer exception. This is an internal bug and should be reported");
-
-    uintptr_t uintptr = 0;
-    MxArray::at(array, name.c_str(), &uintptr);
-
-    return reinterpret_cast<T *>(uintptr);
 }
 
 //
@@ -639,6 +390,54 @@ mxArray *MxArray::from(const StreamStatus &status)
 
     return struct_array.release();
 }
+
+//////////////////////////////////////////////////////
+// Exposed utility functions
+//////////////////////////////////////////////////////
+
+// Less annoying than dealing with function files vs. script files.
+MEX_DEFINE(toString) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    safeCall(
+        [&]()
+        {
+            InputArguments input(nrhs, prhs, 1);
+            OutputArguments output(nlhs, plhs, 1);
+
+            if(mxIsChar(prhs[0]))
+            {
+                output.set(0, input.get<std::string>(0));
+            }
+            else if(mxIsDouble(prhs[0]))
+            {
+                output.set(0, SoapySDR::SettingToString(input.get<double>(0)));
+            }
+            else if(mxIsInt8(prhs[0]) or mxIsInt16(prhs[0]) or mxIsInt32(prhs[0]) or mxIsInt64(prhs[0]))
+            {
+                output.set(0, SoapySDR::SettingToString(input.get<int64_T>(0)));
+            }
+            else if(mxIsUint8(prhs[0]) or mxIsUint16(prhs[0]) or mxIsUint32(prhs[0]) or mxIsUint64(prhs[0]))
+            {
+                output.set(0, SoapySDR::SettingToString(input.get<uint64_T>(0)));
+            }
+            else if(mxIsLogical(prhs[0]))
+            {
+                output.set(0, SoapySDR::SettingToString(input.get<bool>(0)));
+            }
+            else
+            {
+                std::string errorMsg("Unsupported type: ");
+                errorMsg += mxGetClassName(prhs[0]);
+
+                throw std::invalid_argument(errorMsg);
+            }
+        },
+        "toString");
+}
+
+//////////////////////////////////////////////////////
+// <SoapySDR/Device.hpp>
+//////////////////////////////////////////////////////
 
 //
 // Enumeration
@@ -2554,6 +2353,207 @@ MEX_DEFINE(Device_readUART) (int nlhs, mxArray *plhs[], int nrhs, const mxArray 
                     input.get<long>(2)));
         },
         "Device_readUART");
+}
+
+//////////////////////////////////////////////////////
+// <SoapySDR/Errors.hpp>
+//////////////////////////////////////////////////////
+
+MEX_DEFINE(Error_errToStr) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    safeCall(
+        [&]()
+        {
+            InputArguments input(nrhs, prhs, 1);
+            OutputArguments output(nlhs, plhs, 1);
+
+            output.set(
+                0,
+                SoapySDR::errToStr(input.get<int>(0)));
+        },
+        "ticksToTimeNs");
+}
+
+//////////////////////////////////////////////////////
+// <SoapySDR/Logger.hpp>
+//////////////////////////////////////////////////////
+
+static mxArray *mxLoggerFcn = nullptr;
+
+static void SoapyLogHandler(const SoapySDRLogLevel logLevel, const char *message)
+{
+    safeCall(
+        [&]()
+        {
+            if(!mxLoggerFcn)
+                throw std::runtime_error("SoapyLogHandler called without an active log handler. This is an internal bug and should be reported.");
+            if(!message)
+                throw std::runtime_error("SoapyLogHandler: null message. This is an internal bug and should be reported.");
+
+            mxArray *lhs{nullptr};
+            mxArray *rhs[3]
+            {
+                mxLoggerFcn,
+                MxArray::from(logLevel),
+                MxArray::from(message),
+            };
+
+            mexCallMATLAB(0, &lhs, ARRAY_SIZE(rhs), rhs, "feval");
+
+            // Clean up
+            mxDestroyArray(rhs[2]);
+            mxDestroyArray(rhs[1]);
+        },
+        "SoapyLogHandler");
+}
+
+MEX_DEFINE(Logger_log) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    safeCall(
+        [&]()
+        {
+            InputArguments input(nrhs, prhs, 2);
+
+            SoapySDR::log(
+                input.get<SoapySDRLogLevel>(0),
+                input.get<std::string>(1).c_str());
+        },
+        "Logger_log");
+}
+
+MEX_DEFINE(Logger_setLogLevel) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    safeCall(
+        [&]()
+        {
+            InputArguments input(nrhs, prhs, 1);
+
+            SoapySDR::setLogLevel(input.get<SoapySDRLogLevel>(0));
+        },
+        "Logger_setLogLevel");
+}
+
+MEX_DEFINE(Logger_registerLogHandler) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    safeCall(
+        [&]()
+        {
+            if(nrhs != 1)
+                throw std::invalid_argument("Logger_registerLogHandler: expected one input argument.");
+            if(!prhs[0])
+                throw std::invalid_argument("Logger_registerLogHandler: null argument.");
+            if(!mxIsClass(prhs[0], "function_handle"))
+                throw std::invalid_argument("Logger_registerLogHandler: expected a function handle.");
+
+            // Note: as it is now, the last one set will leak, but that's better
+            // than crashing.
+            mxLoggerFcn = mxDuplicateArray(prhs[0]);
+            mexMakeArrayPersistent(mxLoggerFcn);
+
+            SoapySDR::registerLogHandler(&SoapyLogHandler);
+        },
+        "Logger_registerLogHandler");
+}
+
+MEX_DEFINE(Logger_clearLogHandler) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    safeCall(
+        [&]()
+        {
+            mxLoggerFcn = nullptr;
+            SoapySDR::registerLogHandler(nullptr);
+        },
+        "Logger_clearLogHandler");
+}
+
+//////////////////////////////////////////////////////
+// <SoapySDR/Time.hpp>
+//////////////////////////////////////////////////////
+
+MEX_DEFINE(Time_ticksToTimeNs) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    safeCall(
+        [&]()
+        {
+            InputArguments input(nrhs, prhs, 2);
+            OutputArguments output(nlhs, plhs, 1);
+
+            output.set(
+                0,
+                SoapySDR::ticksToTimeNs(
+                    input.get<long long>(0),
+                    input.get<double>(1)));
+        },
+        "ticksToTimeNs");
+}
+
+MEX_DEFINE(Time_timeNsToTicks) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    safeCall(
+        [&]()
+        {
+            InputArguments input(nrhs, prhs, 2);
+            OutputArguments output(nlhs, plhs, 1);
+
+            output.set(
+                0,
+                SoapySDR::timeNsToTicks(
+                    input.get<long long>(0),
+                    input.get<double>(1)));
+        },
+        "timeNsToTicks");
+}
+
+//////////////////////////////////////////////////////
+// <SoapySDR/Version.hpp>
+//////////////////////////////////////////////////////
+
+MEX_DEFINE(Version_getMEXABIVersion) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    safeCall(
+        [&]()
+        {
+            OutputArguments output(nlhs, plhs, 1);
+
+            output.set(0, SOAPY_SDR_ABI_VERSION);
+        },
+        "getMEXABIVersion");
+}
+
+MEX_DEFINE(Version_getABIVersion) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    safeCall(
+        [&]()
+        {
+            OutputArguments output(nlhs, plhs, 1);
+
+            output.set(0, SoapySDR::getABIVersion());
+        },
+        "getABIVersion");
+}
+
+MEX_DEFINE(Version_getAPIVersion) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    safeCall(
+        [&]()
+        {
+            OutputArguments output(nlhs, plhs, 1);
+
+            output.set(0, SoapySDR::getAPIVersion());
+        },
+        "getAPIVersion");
+}
+
+MEX_DEFINE(Version_getLibVersion) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    safeCall(
+        [&]()
+        {
+            OutputArguments output(nlhs, plhs, 1);
+
+            output.set(0, SoapySDR::getLibVersion());
+        },
+        "getLibVersion");
 }
 
 //////////////////////////////////////////////////////
