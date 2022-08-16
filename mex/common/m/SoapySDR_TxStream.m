@@ -27,7 +27,7 @@ classdef SoapySDR_TxStream < SoapySDR_Stream
                 timeoutUs_ = timeoutUs;
             end
 
-            % TODO: distinguish input types, call applicable MEX function
+            result = SoapySDR_MEX("Stream_writeStream", this.__internal, samples, timeNs_, timeoutUs_);
         end
 
         function status = readStatus(this, timeoutUs)

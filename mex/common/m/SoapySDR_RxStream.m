@@ -23,12 +23,6 @@ classdef SoapySDR_RxStream < SoapySDR_Stream
                 timeoutUs_ = timeoutUs;
             end
 
-            if this.format == SoapySDR_StreamFormat.CF32
-                result = SoapySDR_MEX("Stream_readStreamCF32", this.__internal, numElems, timeoutUs_);
-            elseif this.format == SoapySDR_StreamFormat.CF64
-                result = SoapySDR_MEX("Stream_readStreamCF64", this.__internal, numElems, timeoutUs_);
-            else
-                error(sprintf("Invalid format %s", this.format));
-            end
+            result = SoapySDR_MEX("Stream_readStream", this.__internal, numElems, timeoutUs_);
         end
 end

@@ -788,135 +788,148 @@ MEX_DEFINE(Stream_deactivate) (int nlhs, mxArray *plhs[], int nrhs, const mxArra
 }
 
 template <typename T>
-static void streamReadStream(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[], const std::string &expectedFormat)
+static void streamReadStream(
+    const StreamContainer &stream,
+    const size_t numElems,
+    const long timeoutUs,
+    int nlhs,
+    mxArray *plhs[])
+{
+    OutputArguments output(nlhs, plhs, 1);
+
+    RxStreamResult<T> result;
+    result.samples.resize(stream.channels.size());
+    for(auto &chanSamps: result.samples)
+        chanSamps.resize(numElems);
+
+    std::vector<void *> buffs;
+    std::transform(
+        result.samples.begin(),
+        result.samples.end(),
+        std::back_inserter(buffs),
+        [](std::vector<std::complex<T>> &vec)
+        {
+            return (void*)vec.data();
+        });
+
+    const int readRet = stream.device->readStream(
+        stream.stream,
+        buffs.data(),
+        numElems,
+        result.flags,
+        result.timeNs,
+        timeoutUs);
+    if(readRet > 0)
+    {
+        for(auto &chanSamps: result.samples)
+            chanSamps.resize(size_t(readRet));
+    }
+    else
+    {
+        for(auto &chanSamps: result.samples)
+            chanSamps.resize(0);
+
+        result.errorCode = readRet;
+    }
+
+    output.set(0, result);
+}
+
+template <typename T>
+static void streamWriteStream(
+    const StreamContainer &stream,
+    const mxArray *mxSamples,
+    const long long timeNs,
+    const long timeoutUs,
+    int nlhs,
+    mxArray *plhs[])
+{
+    OutputArguments output(nlhs, plhs, 1);
+
+    const auto samples = MxArray::to<ComplexMatrix<T>>(mxSamples);
+    if(samples.size() != stream.channels.size())
+    {
+        std::string errorMsg("Invalid sample dimensions ("+std::to_string(samples.size())+" channels). Expected "+std::to_string(stream.channels.size())+".");
+        throw std::invalid_argument(errorMsg);
+    }
+
+    const auto numElems = samples[0].size();
+
+    TxStreamResult result;
+
+    std::vector<const void *> buffs;
+    std::transform(
+        samples.begin(),
+        samples.end(),
+        std::back_inserter(buffs),
+        [](const std::vector<std::complex<T>> &vec)
+        {
+            return (const void*)vec.data();
+        });
+
+    const int writeRet = stream.device->writeStream(
+        stream.stream,
+        buffs.data(),
+        numElems,
+        result.flags,
+        timeNs,
+        timeoutUs);
+    if(writeRet > 0)
+        result.elemsWritten = size_t(writeRet);
+    else
+        result.errorCode = writeRet;
+
+    output.set(0, result);
+}
+
+MEX_DEFINE(Stream_readStream) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
     safeCall(
         [&]()
         {
             InputArguments input(nrhs, prhs, 3);
-            OutputArguments output(nlhs, plhs, 1);
 
             const auto stream = input.get<StreamContainer>(0);
+            const auto numElems = input.get<size_t>(1);
+            const auto timeoutUs = input.get<long>(2);
+
             if(stream.direction != SOAPY_SDR_RX)
                 throw std::invalid_argument("Cannot receive with TX stream");
 
-            if(stream.format != expectedFormat)
-            {
-                std::string errorMsg("Invalid format "+stream.format+". Expected "+expectedFormat+".");
-                throw std::invalid_argument(errorMsg.c_str());
-            }
-
-            const auto numElems = input.get<size_t>(1);
-
-            RxStreamResult<T> result;
-            result.samples.resize(stream.channels.size());
-            for(auto &chanSamps: result.samples)
-                chanSamps.resize(numElems);
-
-            std::vector<void *> buffs;
-            std::transform(
-                result.samples.begin(),
-                result.samples.end(),
-                std::back_inserter(buffs),
-                [](std::vector<std::complex<T>> &vec)
-                {
-                    return (void*)vec.data();
-                });
-
-            const int readRet = stream.device->readStream(
-                stream.stream,
-                buffs.data(),
-                numElems,
-                result.flags,
-                result.timeNs,
-                input.get<long>(2));
-            if(readRet > 0)
-            {
-                for(auto &chanSamps: result.samples)
-                    chanSamps.resize(size_t(readRet));
-            }
+            if(stream.format == SOAPY_SDR_CF32)
+                streamReadStream<float>(stream, numElems, timeoutUs, nlhs, plhs);
+            else if(stream.format == SOAPY_SDR_CF64)
+                streamReadStream<double>(stream, numElems, timeoutUs, nlhs, plhs);
             else
-            {
-                for(auto &chanSamps: result.samples)
-                    chanSamps.resize(0);
-
-                result.errorCode = readRet;
-            }
-
-            output.set(0, result);
+                throw std::invalid_argument(std::string("Invalid stream type ")+stream.format);
         },
         "Stream_readStream");
 }
 
-template <typename T>
-static void streamWriteStream(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[], const std::string &expectedFormat)
+MEX_DEFINE(Stream_writeStream) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
     safeCall(
         [&]()
         {
             InputArguments input(nrhs, prhs, 4);
-            OutputArguments output(nlhs, plhs, 1);
 
             const auto stream = input.get<StreamContainer>(0);
+            const auto *samples = prhs[1];
+            const auto timeNs = input.get<long long>(2);
+            const auto timeoutUs = input.get<long>(3);
+
             if(stream.direction != SOAPY_SDR_TX)
-                throw std::invalid_argument("Cannot receive with TX stream");
+                throw std::invalid_argument("Cannot transmit with RX stream");
 
-            if(stream.format != expectedFormat)
-            {
-                std::string errorMsg("Invalid format "+stream.format+". Expected "+expectedFormat+".");
-                throw std::invalid_argument(errorMsg);
-            }
-
-            const auto samples = input.get<ComplexMatrix<T>>(1);
-            if(samples.size() != stream.channels.size())
-            {
-                std::string errorMsg("Invalid sample dimensions ("+std::to_string(samples.size())+" channels). Expected "+std::to_string(stream.channels.size())+".");
-                throw std::invalid_argument(errorMsg);
-            }
-
-            const auto numElems = samples[0].size();
-
-            TxStreamResult result;
-
-            std::vector<const void *> buffs;
-            std::transform(
-                samples.begin(),
-                samples.end(),
-                std::back_inserter(buffs),
-                [](const std::vector<std::complex<T>> &vec)
-                {
-                    return (const void*)vec.data();
-                });
-
-            const int writeRet = stream.device->writeStream(
-                stream.stream,
-                buffs.data(),
-                numElems,
-                result.flags,
-                input.get<long long>(2),
-                input.get<long>(3));
-            if(writeRet > 0)
-                result.elemsWritten = size_t(writeRet);
+            if(stream.format == SOAPY_SDR_CF32)
+                streamWriteStream<float>(stream, samples, timeNs, timeoutUs, nlhs, plhs);
+            else if(stream.format == SOAPY_SDR_CF64)
+                streamWriteStream<double>(stream, samples, timeNs, timeoutUs, nlhs, plhs);
             else
-                result.errorCode = writeRet;
-
-            output.set(0, result);
+                throw std::invalid_argument(std::string("Invalid stream type ")+stream.format);
         },
         "Stream_writeStream");
 }
-
-#define MEX_READWRITE_STREAM_API(ctype, format) \
-    MEX_DEFINE(Stream_readStream ## format) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) \
-    { \
-        streamReadStream<ctype>(nlhs, plhs, nrhs, prhs, SOAPY_SDR_ ## format); \
-    } \
-    MEX_DEFINE(Stream_writeStream ## format) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) \
-    { \
-        streamWriteStream<ctype>(nlhs, plhs, nrhs, prhs, SOAPY_SDR_ ## format); \
-    }
-
-MEX_READWRITE_STREAM_API(float, CF32)
-MEX_READWRITE_STREAM_API(double, CF64)
 
 MEX_DEFINE(Stream_readStatus) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
