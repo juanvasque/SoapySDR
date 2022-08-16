@@ -124,6 +124,9 @@ static inline void safeCallWithErrorCode(const Fcn &fcn, const std::string &cont
 // Types
 //////////////////////////////////////////////////////
 
+template <typename T>
+using ComplexMatrix = std::vector<std::vector<std::complex<T>>>;
+
 template <>
 inline mxArray *MxArray::from(const SoapySDR::ArgInfo::Type &type)
 {
@@ -293,7 +296,7 @@ struct RxStreamResult
 {
     int errorCode{0};
 
-    std::vector<std::vector<std::complex<T>>> samples;
+    ComplexMatrix<T> samples;
     int flags{0};
     long long timeNs{0};
 };
@@ -396,9 +399,6 @@ mxArray *MxArray::from(const StreamStatus &status)
 //
 
 template <typename T>
-using ComplexMatrix = std::vector<std::vector<std::complex<T>>>;
-
-template <typename T>
 void mxArrayToVec(const mxArray *array, ComplexMatrix<T> *vec2D)
 {
     MxArray matrix(array);
@@ -418,7 +418,7 @@ template <typename T>
 mxArray *vecToMxArray(const ComplexMatrix<T> &vec2D)
 {
     // TODO: right dimensions (row vs column)?
-    MxArray matrix(MxArray::Numeric<std::complex<T>>(vec2D.size(), vec2D[0].size()));
+    MxArray matrix(MxArray::Numeric<std::complex<T>>(vec2D.size(), vec2D.empty() ? 0 : vec2D[0].size()));
     for(mwIndex col = 0; col < mwIndex(vec2D.size()); ++col)
         for(mwIndex row = 0; row < mwIndex(vec2D[0].size()); ++row)
             matrix.set(col, row, vec2D[col][row]);
