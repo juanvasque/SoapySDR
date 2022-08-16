@@ -391,6 +391,65 @@ mxArray *MxArray::from(const StreamStatus &status)
     return struct_array.release();
 }
 
+//
+// Sample storage
+//
+
+template <typename T>
+using ComplexMatrix = std::vector<std::vector<std::complex<T>>>;
+
+template <typename T>
+void mxArrayToVec(const mxArray *array, ComplexMatrix<T> *vec2D)
+{
+    MxArray matrix(array);
+
+    // TODO: right dimensions(row vs column)?
+    const auto dimensions = matrix.dimensions();
+    vec2D->resize(size_t(dimensions[0]));
+    for(auto &vec: *vec2D)
+        vec.resize(size_t(dimensions[1]));
+
+    for(mwIndex col = 0; col < dimensions[0]; ++col)
+        for(mwIndex row = 0; row < dimensions[1]; ++row)
+            (*vec2D)[col][row] = matrix.at<std::complex<T>>(col, row);
+}
+
+template <typename T>
+mxArray *vecToMxArray(const ComplexMatrix<T> &vec2D)
+{
+    // TODO: right dimensions (row vs column)?
+    MxArray matrix(MxArray::Numeric<std::complex<T>>(vec2D.size(), vec2D[0].size()));
+    for(mwIndex col = 0; col < mwIndex(vec2D.size()); ++col)
+        for(mwIndex row = 0; row < mwIndex(vec2D[0].size()); ++row)
+            matrix.set(col, row, vec2D[col][row]);
+
+    return matrix.release();
+}
+
+template <>
+mxArray *MxArray::from(const ComplexMatrix<float> &vec2D)
+{
+    return vecToMxArray(vec2D);
+}
+
+template <>
+mxArray *MxArray::from(const ComplexMatrix<double> &vec2D)
+{
+    return vecToMxArray(vec2D);
+}
+
+template <>
+void MxArray::to(const mxArray *array, ComplexMatrix<float> *vec2D)
+{
+    return mxArrayToVec(array, vec2D);
+}
+
+template <>
+void MxArray::to(const mxArray *array, ComplexMatrix<double> *vec2D)
+{
+    return mxArrayToVec(array, vec2D);
+}
+
 //////////////////////////////////////////////////////
 // Exposed utility functions
 //////////////////////////////////////////////////////
@@ -808,14 +867,13 @@ static void streamWriteStream(int nlhs, mxArray *plhs[], int nrhs, const mxArray
                 throw std::invalid_argument(errorMsg);
             }
 
-            const auto samples = input.get<std::vector<std::vector<std::complex<T>>>>(1);
+            const auto samples = input.get<ComplexMatrix<T>>(1);
             if(samples.size() != stream.channels.size())
             {
                 std::string errorMsg("Invalid sample dimensions ("+std::to_string(samples.size())+" channels). Expected "+std::to_string(stream.channels.size())+".");
                 throw std::invalid_argument(errorMsg);
             }
 
-            // TODO: do we need to check for jagged arrays? Or does input type guarantee this?
             const auto numElems = samples[0].size();
 
             TxStreamResult result;
