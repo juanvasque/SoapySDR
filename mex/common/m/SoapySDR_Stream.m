@@ -64,8 +64,8 @@ classdef SoapySDR_Stream < handle
 
         function deactivate(this, flags, timeNs)
         %DEACTIVATE Stop streaming.
-            flags_ = 0
-            timeNs_ = 0
+            flags_ = 0;
+            timeNs_ = 0;
 
             if nargin >= 2
                 flags_ = flags;
@@ -76,4 +76,5 @@ classdef SoapySDR_Stream < handle
 
             SoapySDR_MEX("Stream_deactivate", this.__internal, flags_, timeNs_);
         end
+    end
 end

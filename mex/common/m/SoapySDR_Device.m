@@ -110,9 +110,9 @@ classdef SoapySDR_Device < handle
             args_ = SoapySDR_Device._parseArgs(varargin{:});
 
             if direction == SoapySDR_Direction.Tx
-                stream = SoapySDR_TxStream(SoapySDR_MEX("Device_setupStream", this.__internal, direction, format, channels, args_))
+                stream = SoapySDR_TxStream(SoapySDR_MEX("Device_setupStream", this.__internal, direction, format, channels, args_));
             elseif direction == SoapySDR_Direction.Rx
-                stream = SoapySDR_RxStream(SoapySDR_MEX("Device_setupStream", this.__internal, direction, format, channels, args_))
+                stream = SoapySDR_RxStream(SoapySDR_MEX("Device_setupStream", this.__internal, direction, format, channels, args_));
             else
                 error("Invalid type");
             end

@@ -341,6 +341,7 @@ void MxArray::to(const mxArray *array, StreamContainer *stream)
     if(!stream)
         throw std::runtime_error("MxArray::to<StreamContainer>: null pointer exception. This is an internal bug and should be reported");
 
+    MxArray::at(array, "direction", &stream->direction);
     MxArray::at(array, "format", &stream->format);
     MxArray::at(array, "channels", &stream->channels);
     MxArray::at(array, "args", &stream->args);
@@ -350,7 +351,6 @@ void MxArray::to(const mxArray *array, StreamContainer *stream)
 }
 
 // We need this because we can't do partially specialized templates.
-// TODO: does this end up with the matrices we want?
 #define MXARRAY_FROM_RXSTREAMRESULT(T) \
     template <> \
     mxArray *MxArray::from(const RxStreamResult<T> &result) \
@@ -360,6 +360,8 @@ void MxArray::to(const mxArray *array, StreamContainer *stream)
  \
         struct_array.set("errorCode", result.errorCode); \
         struct_array.set("samples", result.samples); \
+        struct_array.set("flags", result.flags); \
+        struct_array.set("timeNs", result.timeNs); \
  \
         return struct_array.release(); \
     }
@@ -819,6 +821,7 @@ static void streamReadStream(
         result.flags,
         result.timeNs,
         timeoutUs);
+    printf("readRet = %d\n", readRet);
     if(readRet > 0)
     {
         for(auto &chanSamps: result.samples)
@@ -892,6 +895,7 @@ MEX_DEFINE(Stream_readStream) (int nlhs, mxArray *plhs[], int nrhs, const mxArra
             const auto stream = input.get<StreamContainer>(0);
             const auto numElems = input.get<size_t>(1);
             const auto timeoutUs = input.get<long>(2);
+            printf("numElems = %zu, timeoutUs = %ld\n", numElems, timeoutUs);
 
             if(stream.direction != SOAPY_SDR_RX)
                 throw std::invalid_argument("Cannot receive with TX stream");

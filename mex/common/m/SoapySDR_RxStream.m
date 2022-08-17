@@ -8,7 +8,7 @@ classdef SoapySDR_RxStream < SoapySDR_Stream
         %
 
         function this = SoapySDR_RxStream(internal)
-            s@SoapySDR_Stream(internal);
+            this@SoapySDR_Stream(internal);
         end
 
         %
@@ -25,4 +25,5 @@ classdef SoapySDR_RxStream < SoapySDR_Stream
 
             result = SoapySDR_MEX("Stream_readStream", this.__internal, numElems, timeoutUs_);
         end
+    end
 end
