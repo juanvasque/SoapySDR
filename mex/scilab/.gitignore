@@ -5,3 +5,4 @@ cleaner.sce
 *.h
 *.hxx
 *.so
+*.dll
