@@ -29,10 +29,12 @@ function testLog
     SoapySDR_setLogLevel(SoapySDR_LogLevel.Notice);
     SoapySDR_logf(SoapySDR_LogLevel.Notice, "Notice: %s %d %f", "str", 1351, 4.18);
 
+    % Normal function
     SoapySDR_registerLogHandler(@loggerFcn);
     SoapySDR_log(SoapySDR_LogLevel.Notice, "Notice");
     SoapySDR_logf(SoapySDR_LogLevel.Notice, "Notice: %s %d %f", "str", 1351, 4.18);
 
+    % Anonymous function
     SoapySDR_registerLogHandler(@(level, message) printf("Anonymous function: %d: %s\n", level, message));
     SoapySDR_log(SoapySDR_LogLevel.Notice, "Notice");
     SoapySDR_logf(SoapySDR_LogLevel.Notice, "Notice: %s %d %f", "str", 1351, 4.18);
@@ -40,3 +42,15 @@ function testLog
     SoapySDR_clearLogHandler();
     SoapySDR_log(SoapySDR_LogLevel.Notice, "Notice");
     SoapySDR_logf(SoapySDR_LogLevel.Notice, "Notice: %s %d %f", "str", 1351, 4.18);
+
+% Make sure if a Matlab/Octave error occurs inside the log function,
+% everything is cleaned up nicely.
+function testErrorInLogHandler
+    SoapySDR_setLogLevel(SoapySDR_LogLevel.Notice);
+
+    % Explicit error
+    SoapySDR_registerLogHandler(@(level, message) error(sprintf("%d: %s", level, message)));
+
+    % TODO: why isn't assertExceptionThrown catching these?
+    SoapySDR_log(SoapySDR_LogLevel.Notice, "This is an error");
+    SoapySDR_logf(SoapySDR_LogLevel.Notice, "This is an error: %d", 12345);
