@@ -1,9 +1,9 @@
-cd("/home/ncorgan/dev/sdr/src/SoapySDR/mex")
+cd("/home/ncorgan/dev/sdr/src/SoapySDR/mex/scilab")
 
 ilib_mex_build( ..
     "SoapySDR_MEX", ..
     ["SoapySDR_MEX", "SoapySDR_MEX", "cmex"], ..
-    ["native/SoapySDR_MEX.cpp"], ..
+    ["../native/SoapySDR_MEX.cpp"], ..
     ["SoapySDR"], ..
     "", ..
     "-L/usr/local/lib", ..
