@@ -19,7 +19,7 @@ if(NOT ENABLE_OCTAVE)
 endif()
 
 set(include_dirs
-    ${CMAKE_CURRENT_SOURCE_DIR}/../common/native/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../native/include
     ${PROJECT_SOURCE_DIR}/include
     ${PROJECT_BINARY_DIR}/include)
 
@@ -38,17 +38,19 @@ if(CMAKE_COMPILER_IS_CXX OR (CMAKE_CXX_COMPILER_ID STREQUAL "Clang") OR (CMAKE_C
     set(other_flags "-std=gnu++11")
 endif()
 
+set(MEX_FILEPATH ${CMAKE_CURRENT_SOURCE_DIR}/../../native/SoapySDR_MEX.cpp)
+
 # TODO: not portable
 add_custom_command(
     OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/SoapySDR_MEX.mex
     COMMENT "Building SoapySDR_MEX.mex for Octave"
-    COMMAND ${OCTAVE_MKOCTFILE_EXECUTABLE} --mex ${include_flags} ${libdir_flags} ${library_flags} ${other_flags} ${CMAKE_CURRENT_SOURCE_DIR}/../common/native/SoapySDR_MEX.cpp
+    COMMAND ${OCTAVE_MKOCTFILE_EXECUTABLE} --mex ${include_flags} ${libdir_flags} ${library_flags} ${other_flags} ${MEX_FILEPATH}
     DEPENDS SoapySDR
-    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/../common/native/SoapySDR_MEX.cpp)
+    DEPENDS ${MEX_FILEPATH})
 
 add_custom_target(SoapySDR_MEX_Octave ALL
     DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/SoapySDR_MEX.mex
-    SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/../common/native/SoapySDR_MEX.cpp)
+    SOURCES ${MEX_FILEPATH})
 
 install(
     FILES ${m_files}
@@ -92,7 +94,7 @@ foreach(src ${m_files})
 endforeach()
 
 foreach(test ${test_names})
-    set(test_path ${CMAKE_CURRENT_SOURCE_DIR}/../common/tests/${test}.m)
+    set(test_path ${CMAKE_CURRENT_SOURCE_DIR}/../tests/${test}.m)
 
     add_test(
         NAME Octave_${test}
