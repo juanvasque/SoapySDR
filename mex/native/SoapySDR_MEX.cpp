@@ -2593,7 +2593,8 @@ MEX_DEFINE(Logger_registerLogHandler) (int nlhs, mxArray *plhs[], int nrhs, cons
             if(mxLoggerFcn) mxDestroyArray(mxLoggerFcn);
 
             mxLoggerFcn = mxDuplicateArray(prhs[0]);
-            mexMakeArrayPersistent(mxLoggerFcn);
+#warning TODO restore
+            //mexMakeArrayPersistent(mxLoggerFcn);
 
             SoapySDR::registerLogHandler(&SoapyLogHandler);
         },
