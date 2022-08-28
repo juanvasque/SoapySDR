@@ -2520,8 +2520,10 @@ MEX_DEFINE(Logger_registerLogHandler) (int nlhs, mxArray *plhs[], int nrhs, cons
             if(!mxIsClass(prhs[0], "function_handle"))
                 throw std::invalid_argument("Logger_registerLogHandler: expected a function handle.");
 
-            // Note: as it is now, the last one set will leak, but that's better
-            // than crashing.
+            // Note: as it is now, the last one set will leak if clear is not called,
+            // but this is better than crashing.
+            if(mxLoggerFcn) mxDestroyArray(mxLoggerFcn);
+
             mxLoggerFcn = mxDuplicateArray(prhs[0]);
             mexMakeArrayPersistent(mxLoggerFcn);
 
@@ -2535,6 +2537,8 @@ MEX_DEFINE(Logger_clearLogHandler) (int nlhs, mxArray *plhs[], int nrhs, const m
     safeCall(
         [&]()
         {
+            if(mxLoggerFcn) mxDestroyArray(mxLoggerFcn);
+
             mxLoggerFcn = nullptr;
             SoapySDR::registerLogHandler(nullptr);
         },
