@@ -43,7 +43,7 @@ set(MEX_FILEPATH ${CMAKE_CURRENT_SOURCE_DIR}/../../native/SoapySDR_MEX.cpp)
 # TODO: not portable
 add_custom_command(
     OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/SoapySDR_MEX.mex
-    COMMENT "Building SoapySDR_MEX.mex for Octave"
+    COMMENT "Building SoapySDR_MEX for Octave"
     COMMAND ${OCTAVE_MKOCTFILE_EXECUTABLE} --mex ${include_flags} ${libdir_flags} ${library_flags} ${other_flags} ${MEX_FILEPATH}
     DEPENDS SoapySDR
     DEPENDS ${MEX_FILEPATH})
