@@ -2519,7 +2519,13 @@ MEX_DEFINE(Error_errToStr) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *
 
 //////////////////////////////////////////////////////
 // <SoapySDR/Logger.hpp>
+//
+// Note: this doesn't build for Scilab due to not all
+// necessary functions being exported by Scilab.
 //////////////////////////////////////////////////////
+
+#ifdef SOAPY_SDR_SCILAB
+#else
 
 static mxArray *mxLoggerFcn = nullptr;
 
@@ -2593,8 +2599,7 @@ MEX_DEFINE(Logger_registerLogHandler) (int nlhs, mxArray *plhs[], int nrhs, cons
             if(mxLoggerFcn) mxDestroyArray(mxLoggerFcn);
 
             mxLoggerFcn = mxDuplicateArray(prhs[0]);
-#warning TODO restore
-            //mexMakeArrayPersistent(mxLoggerFcn);
+            mexMakeArrayPersistent(mxLoggerFcn);
 
             SoapySDR::registerLogHandler(&SoapyLogHandler);
         },
@@ -2613,6 +2618,8 @@ MEX_DEFINE(Logger_clearLogHandler) (int nlhs, mxArray *plhs[], int nrhs, const m
         },
         "Logger_clearLogHandler");
 }
+
+#endif
 
 //////////////////////////////////////////////////////
 // <SoapySDR/Time.hpp>
