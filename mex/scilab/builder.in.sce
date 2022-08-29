@@ -6,4 +6,5 @@ ldflags = "";
 cflags = "-DSOAPY_SDR_SCILAB -I@PROJECT_SOURCE_DIR@ -I@PROJECT_SOURCE_DIR@/mex/native/include -L@PROJECT_BINARY_DIR@/lib -lSoapySDR";
 fflags = "";
 
+ilib_verbose(2);
 ilib_mex_build(ilib_name,table,files,libs,"",ldflags,cflags,fflags);

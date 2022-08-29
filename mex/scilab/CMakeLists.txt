@@ -25,14 +25,19 @@ configure_file(
     ${CMAKE_CURRENT_BINARY_DIR}/builder.sce
 @ONLY)
 
+set(TARGET_DEPENDS
+    ${MEX_FILEPATH}
+    ${CMAKE_CURRENT_SOURCE_DIR}/builder.in.sce
+    ${CMAKE_CURRENT_BINARY_DIR}/builder.sce)
+
 # TODO: not portable
 add_custom_command(
     OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/libSoapySDR_MEX.so
     COMMENT "Building SoapySDR_MEX for Scilab"
     COMMAND ${SCILAB_CLI} -f ${CMAKE_CURRENT_BINARY_DIR}/builder.sce -quit
     DEPENDS SoapySDR
-    DEPENDS ${MEX_FILEPATH})
+    DEPENDS ${TARGET_DEPENDS})
 
 add_custom_target(SoapySDR_MEX_Scilab ALL
     DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/libSoapySDR_MEX.so
-    SOURCES ${MEX_FILEPATH})
+    SOURCES ${TARGET_DEPENDS})
