@@ -69,7 +69,7 @@ jobs:
                 git clone https://github.com/MOxUnit/MOxUnit.git
                 cd MOxUnit
                 git checkout 91b9cae37785cbb1241835d07c9c2b5ae8d9f62a # To guarantee diff applies
-                git apply ${{github.workspace}}/mex/common/patches/constructor-error-hack.diff
+                git apply ${{github.workspace}}/mex/matlab-octave/patches/constructor-error-hack.diff
                 make install
           - name: Build SoapySDR
             run: |
@@ -188,7 +188,7 @@ jobs:
                 git clone https://github.com/MOxUnit/MOxUnit.git
                 cd MOxUnit
                 git checkout 91b9cae37785cbb1241835d07c9c2b5ae8d9f62a # To guarantee diff applies
-                git apply ${{github.workspace}}/mex/common/patches/constructor-error-hack.diff
+                git apply ${{github.workspace}}/mex/matlab-octave/patches/constructor-error-hack.diff
                 make install
           - name: Build SoapySDR
             run: |
