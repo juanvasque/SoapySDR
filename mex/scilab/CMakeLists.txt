@@ -9,7 +9,7 @@ find_package(Scilab)
 
 include(FeatureSummary)
 include(CMakeDependentOption)
-cmake_dependent_option(ENABLE_SCILAB "Enable Scilab bindings" ON "UNIX;ENABLE_LIBRARY;SCILAB_FOUND" OFF)
+cmake_dependent_option(ENABLE_SCILAB "Enable Scilab bindings" ON "UNIX;CMAKE_COMPILER_IS_GNUCXX;ENABLE_LIBRARY;SCILAB_FOUND" OFF)
 add_feature_info(Scilab ENABLE_SCILAB "Scilab bindings")
 if(NOT ENABLE_SCILAB)
     return()
