@@ -1,8 +1,0 @@
-loader.sce
-cleaner.sce
-
-*.cpp
-*.h
-*.hxx
-*.so
-*.dll

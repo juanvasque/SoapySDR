@@ -24,74 +24,6 @@ using namespace mexplus;
 // TODO: error message consistency (end in periods or not, etc)
 
 //////////////////////////////////////////////////////
-// Defined in Matlab/Octave but not Scilab
-//////////////////////////////////////////////////////
-
-#if ! defined (UINT64_T)
-#  define UINT64_T uint64_t
-#endif
-
-#if ! defined (uint64_T)
-#  define uint64_T uint64_t
-#endif
-
-#if ! defined (INT64_T)
-#  define INT64_T int64_t
-#endif
-
-#if ! defined (int64_T)
-#  define int64_T int64_t
-#endif
-
-#if ! defined (UINT32_T)
-#  define UINT32_T uint32_t
-#endif
-
-#if ! defined (uint32_T)
-#  define uint32_T uint32_t
-#endif
-
-#if ! defined (INT32_T)
-#  define INT32_T int32_t
-#endif
-
-#if ! defined (int32_T)
-#  define int32_T int32_t
-#endif
-
-#if ! defined (UINT16_T)
-#  define UINT16_T uint16_t
-#endif
-
-#if ! defined (uint16_T)
-#  define uint16_T uint16_t
-#endif
-
-#if ! defined (INT16_T)
-#  define INT16_T int16_t
-#endif
-
-#if ! defined (int16_T)
-#  define int16_T int16_t
-#endif
-
-#if ! defined (UINT8_T)
-#  define UINT8_T uint8_t
-#endif
-
-#if ! defined (uint8_T)
-#  define uint8_T uint8_t
-#endif
-
-#if ! defined (INT8_T)
-#  define INT8_T int8_t
-#endif
-
-#if ! defined (int8_T)
-#  define int8_T int8_t
-#endif
-
-//////////////////////////////////////////////////////
 // Internal utility
 //////////////////////////////////////////////////////
 
@@ -2519,13 +2451,7 @@ MEX_DEFINE(Error_errToStr) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *
 
 //////////////////////////////////////////////////////
 // <SoapySDR/Logger.hpp>
-//
-// Note: this doesn't build for Scilab due to not all
-// necessary functions being exported by Scilab.
 //////////////////////////////////////////////////////
-
-#ifdef SOAPY_SDR_SCILAB
-#else
 
 static mxArray *mxLoggerFcn = nullptr;
 
@@ -2618,8 +2544,6 @@ MEX_DEFINE(Logger_clearLogHandler) (int nlhs, mxArray *plhs[], int nrhs, const m
         },
         "Logger_clearLogHandler");
 }
-
-#endif
 
 //////////////////////////////////////////////////////
 // <SoapySDR/Time.hpp>

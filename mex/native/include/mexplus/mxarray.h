@@ -969,7 +969,7 @@ class MxArray {
                            >::type* value) {
     typedef typename std::make_signed<mxChar>::type SignedMxChar;
     *value = static_cast<R>(
-        *(reinterpret_cast<SignedMxChar*>(mxGetChars((mxArray*)array)) + index));
+        *(reinterpret_cast<SignedMxChar*>(mxGetChars(array)) + index));
   }
   /** Explicit char (unsigned) element assignment.
    */
@@ -980,7 +980,7 @@ class MxArray {
                              !std::is_signed<R>::value,
                              R
                            >::type* value) {
-    *value = *(mxGetChars((mxArray*)array) + index);
+    *value = *(mxGetChars(array) + index);
   }
   /** Explicit cell element assignment.
    */
@@ -1054,7 +1054,7 @@ class MxArray {
                              >::type* value) {
     typedef typename std::make_signed<mxChar>::type SignedMxChar;
     SignedMxChar* data_pointer = reinterpret_cast<SignedMxChar*>(
-        mxGetChars((mxArray*)array));
+        mxGetChars(array));
     value->assign(data_pointer, data_pointer + mxGetNumberOfElements(array));
   }
   /** Explicit char (unsigned) array assignment.
@@ -1064,7 +1064,7 @@ class MxArray {
                              typename std::enable_if<
                                !std::is_signed<typename R::value_type>::value,
       R>::type* value) {
-    mxChar* data_pointer = mxGetChars((mxArray*)array);
+    mxChar* data_pointer = mxGetChars(array);
     value->assign(data_pointer, data_pointer + mxGetNumberOfElements(array));
   }
   /** Explicit cell array assignment.

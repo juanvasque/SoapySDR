@@ -8,4 +8,3 @@ The currently supported languages are:
 
 * Matlab
 * Octave
-* Scilab
