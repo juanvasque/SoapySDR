@@ -57,7 +57,6 @@ jobs:
                 doxygen \
                 luajit lua-ldoc \
                 liboctave-dev \
-                scilab-cli scilab-include scilab-full-bin
 
                 # LuaJIT unit testing
                 # LuaRocks stopped installing properly through apt, so just copy the file from its repo
@@ -174,7 +173,7 @@ jobs:
           - uses: actions/checkout@v2
           - name: Install dependencies
             run: |
-                brew install doxygen luajit octave scilab
+                brew install doxygen luajit octave
                 pip install numpy
                 pip3 install numpy
 
